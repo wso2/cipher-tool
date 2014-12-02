@@ -22,7 +22,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
 import sun.misc.BASE64Encoder;
 
 import javax.crypto.BadPaddingException;
@@ -42,7 +41,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Console;
