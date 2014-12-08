@@ -50,10 +50,10 @@ public class CipherToolConstants {
 
     public static final class PrimaryKeyStore {
 
-        public static final String PRIMARY_KEY_LOCATION = "//Server/Security/RegistryKeyStore/" +
+        public static final String PRIMARY_KEY_LOCATION = "//Server/Security/KeyStore/" +
                 "Location";
-        public static final String PRIMARY_KEY_TYPE = "//Server/Security/RegistryKeyStore/Type";
-        public static final String PRIMARY_KEY_ALIAS = "//Server/Security/RegistryKeyStore/" +
+        public static final String PRIMARY_KEY_TYPE = "//Server/Security/KeyStore/Type";
+        public static final String PRIMARY_KEY_ALIAS = "//Server/Security/KeyStore/" +
                 "KeyAlias";
         
     }
