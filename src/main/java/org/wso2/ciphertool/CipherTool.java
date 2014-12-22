@@ -144,7 +144,10 @@ public class CipherTool {
             }
         }
         
-        String filePath = carbonHome + File.separator + "conf" + File.separator
+        String configFilePath = System.getProperty("config.properties.dir", CipherToolConstants.REPOSITORY_DIR
+                + File.separator + CipherToolConstants.CONF_DIR + File.separator + CipherToolConstants.SECURITY_DIR);
+
+        String filePath = carbonHome + File.separator + configFilePath + File.separator
                 + CipherToolConstants.CIPHER_TOOL_CONFIG_PROPERTY_FILE;
 
         FileInputStream fileInputStream = null;
