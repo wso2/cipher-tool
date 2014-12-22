@@ -28,9 +28,11 @@ public class CipherToolConstants {
     public static final String SECURE_VAULT_SIMPLE = "svns:secureVault";
     public static final String SECURE_VAULT_NS_PREFIX = "xmlns:svns";
     public static final String SECURE_VAULT_ATTRIBUTE = "provider";
-    public static final String SECURE_VAULT_ALIAS= "svns:secretAlias";    
-    public static final String SECRET_PROVIDER = "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler";
-    public static final String CARBON_DEFAULT_SECRET_PROVIDER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    public static final String SECURE_VAULT_ALIAS = "svns:secretAlias";
+    public static final String SECRET_PROVIDER =
+            "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler";
+    public static final String CARBON_DEFAULT_SECRET_PROVIDER =
+            "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
     public static final String ETC_DIR = "etc";
@@ -50,10 +52,9 @@ public class CipherToolConstants {
 
     public static final class PrimaryKeyStore {
 
-        public static final String PRIMARY_KEY_LOCATION = "//Server/Security/RegistryKeyStore/" +
-                "Location";
-        public static final String PRIMARY_KEY_TYPE = "//Server/Security/RegistryKeyStore/Type";
-        public static final String PRIMARY_KEY_ALIAS = "//Server/Security/RegistryKeyStore/" +
+        public static final String PRIMARY_KEY_LOCATION = "//Server/Security/KeyStore/" + "Location";
+        public static final String PRIMARY_KEY_TYPE = "//Server/Security/KeyStore/Type";
+        public static final String PRIMARY_KEY_ALIAS = "//Server/Security/KeyStore/" +
                 "KeyAlias";
         
     }
@@ -89,10 +90,11 @@ public class CipherToolConstants {
         public static final String PRIMARY_KEY_STORE_PASSWORD = "carbon.xml//Server/Security/KeyStore" +
                 "/Password,true";
         public static final String PRIMARY_PRIVATE_KEY_PASSWORD = "carbon.xml//Server/Security/KeyStore" +
-                "/KeyPassword,true";
+                                                                  "/KeyPassword,true";
         public static final String PRIMARY_TRUST_STORE_PASSWORD = "carbon.xml//Server/Security/TrustStore" +
-                "/Password,true";
-        public static final String EVENT_BROKER_DELIVERY_MANAGER_PASSWORD = "event-broker.xml//eventBrokerConfig/eventBroker/deliveryManager/remoteMessageBroker" +
+                                                                  "/Password,true";
+        public static final String EVENT_BROKER_DELIVERY_MANAGER_PASSWORD =
+                "event-broker.xml//eventBrokerConfig/eventBroker/deliveryManager/remoteMessageBroker" +
                 "/Password,true";
     }
 
