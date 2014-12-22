@@ -122,6 +122,9 @@ public class CipherTool {
             } else if (arg.equals("-Dconfigure")) {
                 String property = arg.substring(2);
                 System.setProperty(property, "true");
+            } else if (arg.startsWith("-Dpassword=")) {
+                String property = arg.substring(11);
+                System.setProperty("password", property);
             }
         }
 
@@ -161,6 +164,9 @@ public class CipherTool {
 
         System.out.println("\t-Dchange\t\t This option would allow user to change the specific password " +
                            "which has been secured\n");
+
+        System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a command line " +
+                           "argument. NOTE: Providing the password in command line arguments list is not recommended.\n");
     }
 
     /**
@@ -191,7 +197,11 @@ public class CipherTool {
                                                  .PRIMARY_KEY_TYPE);
         aliasName = getPrimaryKeyStoreData(CipherToolConstants.PrimaryKeyStore
                                                    .PRIMARY_KEY_ALIAS);
-        password = carbonKeyPasswordReader();
+        if (System.getProperty("password") != null && System.getProperty("password").toString().length() > 0) {
+            password = System.getProperty("password");
+        } else {
+            password = carbonKeyPasswordReader();
+        }
 
         try {
             KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType, provider);
