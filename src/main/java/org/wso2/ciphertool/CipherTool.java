@@ -204,19 +204,16 @@ public class CipherTool {
         Cipher cipher = null;
 
         keyStoreFile = getKeyStoreFile();
-
         File keyStore = new File(keyStoreFile);
 
         if (!keyStore.exists()) {
             handleException("Primary Key Store Can not be found at: " + keyStore.getAbsolutePath());
         }
-
+        
         keyType = getKeyStoreType();
-
         aliasName = getKeyStoreAlias();
         
         if ((password = getConfigProperty("password")) == null) {
-        	
         	password = carbonKeyPasswordReader();
         }
 
