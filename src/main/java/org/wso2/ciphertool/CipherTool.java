@@ -873,7 +873,7 @@ public class CipherTool {
 
         if ((filePath = getConfigProperty(property)) == null) {
 
-            filePath = carbonHome + File.separator + CipherToolConstants.REPOSITORY_DIR + File.separator
+            filePath = CipherToolConstants.REPOSITORY_DIR + File.separator
                     + CipherToolConstants.CONF_DIR + File.separator + CipherToolConstants.SECURITY_DIR + File.separator
                     + fileName;
         }
