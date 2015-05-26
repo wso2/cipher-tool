@@ -46,8 +46,8 @@ public class CipherToolConstants {
 
 
     public static final String CARBON_CONFIG_FILE = "carbon.xml";
-    public static final String CIPHER_PROPERTY_FILE = "cipher-text.properties";
-    public static final String CIPHER_TOOL_PROPERTY_FILE = "cipher-tool.properties";
+    public static final String CIPHER_PROPERTY_FILE = "features/resources/cipher-text.properties";
+    public static final String CIPHER_TOOL_PROPERTY_FILE = "features/resources/cipher-tool.properties";
     public static final String SECRET_PROPERTY_FILE = "secret-conf.properties";
 
     public static final class PrimaryKeyStore {

@@ -101,7 +101,7 @@ public class CipherTool {
         String osName = System.getProperty("os.name");
         File file;
         if (osName.toLowerCase().indexOf("win") == -1) {
-            file = new File("." + File.separator + ".." + File.separator);
+            file = new File("." + File.separator + "src/main" + File.separator);
         } else {
             file = new File("." + File.separator);
         }
@@ -660,7 +660,7 @@ public class CipherTool {
         properties.setProperty("secretRepositories.file.provider",
                        "org.wso2.securevault.secret.repository.FileBaseSecretRepositoryProvider");
         properties.setProperty("secretRepositories.file.location", "repository" + File.separator +
-                    "conf" + File.separator + "security" + File.separator +"cipher-text.properties");
+                    "conf" + File.separator + "security" + File.separator + "features/resources/cipher-text.properties");
         properties.setProperty("keystore.identity.location", keyStoreFile);
         properties.setProperty("keystore.identity.type", keyType);
         properties.setProperty("keystore.identity.alias", aliasName);
