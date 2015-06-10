@@ -17,6 +17,7 @@ package org.wso2.ciphertool.utils;
 
 public class Constants {
 
+    public static final String UTF8 = "UTF-8";
     public static final String OS_NAME = "os.name";
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";

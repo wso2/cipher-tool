@@ -64,10 +64,11 @@ public class KeyStoreUtil {
 
             keyType = getPrimaryKeyInfo(document.getDocumentElement(),
                                         Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH, keyType);
             if (keyType == null) {
                 throw new CipherToolException("KeyStore Type can not be null");
             }
+            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH, keyType);
+
 
             aliasName = getPrimaryKeyInfo(document.getDocumentElement(),
                                           Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
@@ -87,7 +88,6 @@ public class KeyStoreUtil {
         } else {
             password = Utils.getValueFromConsole("Please Enter Primary KeyStore Password of Carbon Server : ");
         }
-        password = "wso2carbon"; //ToDo : This is for testing
         if (password == null) {
             throw new CipherToolException("KeyStore password can not be null");
         }
