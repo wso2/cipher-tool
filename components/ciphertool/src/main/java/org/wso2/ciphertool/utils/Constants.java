@@ -36,14 +36,23 @@ public class Constants {
     public static final String USERSTORE_DIR = "userstores";
 
     public static final String CARBON_CONFIG_FILE = "carbon.xml";
-    public static final String CIPHER_PROPERTY_FILE = "cipher-text.properties";
+    public static final String CIPHER_TEXT_PROPERTY_FILE = "cipher-text.properties";
     public static final String CIPHER_TOOL_PROPERTY_FILE = "cipher-tool.properties";
     public static final String SECRET_PROPERTY_FILE = "secret-conf.properties";
+
+    public static final String CIPHER_TEXT_PROPERTY_FILE_PROPERTY = "cipher.text.properties.file";
+    public static final String CIPHER_TOOL_PROPERTY_FILE_PROPERTY = "cipher.tool.properties.file";
+    public static final String CIPHER_TOOL_CONFIG_PROPERTY_FILE = "cipher-tool-config.properties";
+    public static final String SECRET_PROPERTY_FILE_PROPERTY = "secret.conf.properties.file";
 
     public static final class PrimaryKeyStore {
         public static final String PRIMARY_KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
         public static final String PRIMARY_KEY_TYPE_XPATH = "//Server/Security/KeyStore/Type";
         public static final String PRIMARY_KEY_ALIAS_XPATH = "//Server/Security/KeyStore/KeyAlias";
+
+        public static final String PRIMARY_KEY_LOCATION_PROPERTY = "primary.key.location";
+        public static final String PRIMARY_KEY_TYPE_PROPERTY = "primary.key.type";
+        public static final String PRIMARY_KEY_ALIAS_PROPERTY = "primary.key.alias";
     }
 
     public static final class SecureVault {

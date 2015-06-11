@@ -55,7 +55,7 @@ public class CipherTool {
             loadXpathValuesAndPasswordDetails();
             secureVaultConfigTokens();
             encryptCipherTextFile(cipher);
-            writeToSecureConfPropertyFile();
+            Utils.writeToSecureConfPropertyFile();
         } else if (System.getProperty(Constants.CHANGE) != null &&
                    System.getProperty(Constants.CHANGE).equals("true")) {
             changePassword(cipher);
@@ -110,8 +110,7 @@ public class CipherTool {
             carbonHome =
                     Utils.getValueFromConsole("CARBON_HOME is not properly set. Please Enter CARBON_HOME again : ");
         }
-
-        System.setProperty(Constants.CARBON_HOME, carbonHome);
+        Utils.setSystemProperties(carbonHome);
     }
 
     /**
@@ -170,24 +169,24 @@ public class CipherTool {
     }
 
     private static void loadXpathValuesAndPasswordDetails() {
-        Properties cipherToolProperties = Utils.loadProperties(Constants.CIPHER_TOOL_PROPERTY_FILE);
+        Properties cipherToolProperties = Utils.loadProperties(System.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY));
         for (Object key : cipherToolProperties.keySet()) {
             String passwordAlias = (String) key;
             configFileXpathMap.put(passwordAlias, cipherToolProperties.getProperty(passwordAlias));
         }
 
-        Properties cipherTextProperties = Utils.loadProperties(Constants.CIPHER_PROPERTY_FILE);
+        Properties cipherTextProperties = Utils.loadProperties(System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         for (Object key : cipherTextProperties.keySet()) {
             String passwordAlias = (String) key;
             if (configFileXpathMap.containsKey(passwordAlias)) {
                 aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
             } else {
-                String buffer1 = Utils.getValueFromConsole("XPath value for secret alias '" + passwordAlias +
+                String xPathConsole = Utils.getValueFromConsole("XPath value for secret alias '" + passwordAlias +
                                                     "' cannot be found. Please enter XPath manually: ");
-                String buffer2 = Utils.getValueFromConsole("Please enter configuration file : ");
+                String configFileConsole = Utils.getValueFromConsole("Please enter configuration file : ");
 
-                if (!buffer1.trim().equals("") && !buffer2.trim().equals("")) {
-                    configFileXpathMap.put(passwordAlias, buffer1.trim() + buffer2.trim());
+                if (!xPathConsole.trim().equals("") && !configFileConsole.trim().equals("")) {
+                    configFileXpathMap.put(passwordAlias, xPathConsole.trim() + configFileConsole.trim());
                     aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
                 }
             }
@@ -314,7 +313,7 @@ public class CipherTool {
             properties.setProperty(entry.getKey(), value);
         }
 
-        Utils.writeToPropertyFile(properties, Constants.CIPHER_PROPERTY_FILE);
+        Utils.writeToPropertyFile(properties, System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
     }
 
     public static String getPasswordFromConsole(String key, Cipher cipher) {
@@ -328,43 +327,12 @@ public class CipherTool {
         }
     }
 
-    private static void writeToSecureConfPropertyFile() {
-        Properties properties = new Properties();
-
-        String keyStoreFile = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
-        String keyType = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
-        String aliasName = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
-
-        properties
-                .setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER, Constants.SecureVault.SECRET_PROVIDER_CLASS);
-        properties.setProperty(Constants.SecureVault.SECRET_REPOSITORIES, "file");
-        properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
-                               Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
-        properties.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION,
-                               Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
-                               Constants.SECURITY_DIR + File.separator + Constants.CIPHER_PROPERTY_FILE);
-        properties.setProperty(Constants.SecureVault.KEYSTORE_LOCATION, keyStoreFile);
-        properties.setProperty(Constants.SecureVault.KEYSTORE_TYPE, keyType);
-        properties.setProperty(Constants.SecureVault.KEYSTORE_ALIAS, aliasName);
-        properties.setProperty(Constants.SecureVault.KEYSTORE_STORE_PASSWORD,
-                               Constants.SecureVault.IDENTITY_STORE_PASSWORD);
-        properties.setProperty(Constants.SecureVault.KEYSTORE_STORE_SECRET_PROVIDER,
-                               Constants.SecureVault.CARBON_DEFAULT_SECRET_PROVIDER);
-        properties
-                .setProperty(Constants.SecureVault.KEYSTORE_KEY_PASSWORD, Constants.SecureVault.IDENTITY_KEY_PASSWORD);
-        properties.setProperty(Constants.SecureVault.KEYSTORE_KEY_SECRET_PROVIDER,
-                               Constants.SecureVault.CARBON_DEFAULT_SECRET_PROVIDER);
-
-        Utils.writeToPropertyFile(properties, Constants.SECRET_PROPERTY_FILE);
-
-        System.out.println("\nSecret Configurations are written to the property file successfully\n");
-    }
-
     /**
      * use to change an specific password.
      */
     private static void changePassword(Cipher cipher) {
-        Properties cipherTextProperties = Utils.loadProperties(Constants.CIPHER_PROPERTY_FILE);
+        Properties cipherTextProperties = Utils.loadProperties(System.getProperty(
+                Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         List<String> keyValueList = new ArrayList<String>();
         int i = 1;
         for (Object key : cipherTextProperties.keySet()) {

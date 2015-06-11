@@ -15,20 +15,11 @@
  */
 package org.wso2.ciphertool.utils;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.wso2.ciphertool.exception.CipherToolException;
-import org.xml.sax.SAXException;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -43,44 +34,9 @@ public class KeyStoreUtil {
     public static Cipher initializeCipher() {
 
         Cipher cipher;
-        String carbonHome = System.getProperty(Constants.CARBON_HOME);
-        String carbonConfigFile = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator
-                                  + Constants.CONF_DIR + File.separator + Constants.CARBON_CONFIG_FILE;
-        String keyStoreFile, keyType, aliasName;
-
-        try {
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            Document document = docBuilder.parse(carbonConfigFile);
-
-            keyStoreFile = getPrimaryKeyInfo(document.getDocumentElement(),
-                                             Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
-            keyStoreFile = carbonHome + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH, keyStoreFile);
-            File keyStore = new File(keyStoreFile);
-            if (!keyStore.exists()) {
-                throw new CipherToolException("Primary Key Store Can not be found at Default location");
-            }
-
-            keyType = getPrimaryKeyInfo(document.getDocumentElement(),
-                                        Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
-            if (keyType == null) {
-                throw new CipherToolException("KeyStore Type can not be null");
-            }
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH, keyType);
-
-
-            aliasName = getPrimaryKeyInfo(document.getDocumentElement(),
-                                          Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH, aliasName);
-        } catch (ParserConfigurationException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
-        } catch (SAXException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
-        } catch (IOException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
-        }
-
+        String keyStoreFile = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
+        String keyType = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
+        String keyAlias = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
         String password;
         if (System.getProperty(Constants.KEYSTORE_PASSWORD) != null &&
             System.getProperty(Constants.KEYSTORE_PASSWORD).length() > 0) {
@@ -94,7 +50,7 @@ public class KeyStoreUtil {
 
         KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
         try {
-            Certificate certs = primaryKeyStore.getCertificate(aliasName);
+            Certificate certs = primaryKeyStore.getCertificate(keyAlias);
             cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, certs);
         } catch (KeyStoreException e) {
@@ -109,23 +65,6 @@ public class KeyStoreUtil {
 
         System.out.println("\nPrimary KeyStore of Carbon Server is initialized Successfully\n");
         return cipher;
-    }
-
-    private static String getPrimaryKeyInfo(Element element, String xPath) {
-
-        String nodeValue = null;
-        try {
-            XPathFactory xpf = XPathFactory.newInstance();
-            XPath xp = xpf.newXPath();
-            XPathExpression xPathExpression = xp.compile(xPath);
-            Node text = (Node) xPathExpression.evaluate(element, XPathConstants.NODE);
-            if (text != null) {
-                nodeValue = text.getTextContent();
-            }
-        } catch (XPathExpressionException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
-        }
-        return nodeValue;
     }
 
     private static KeyStore getKeyStore(String location, String storePassword, String storeType) {
@@ -148,7 +87,7 @@ public class KeyStoreUtil {
                 try {
                     bufferedInputStream.close();
                 } catch (IOException ignored) {
-                    System.err.println("Error while closing input stream");
+                    throw new CipherToolException("Error while closing input stream");
                 }
             }
         }
