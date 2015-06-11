@@ -21,6 +21,13 @@
         <module>features</module>
     </modules>
 
+    <scm>
+        <url>https://github.com/wso2/cipher-tool.git</url>
+        <developerConnection>scm:git:https://github.com/wso2/cipher-tool.git</developerConnection>
+        <connection>scm:git:https://github.com/wso2/cipher-tool.git</connection>
+        <tag>HEAD</tag>
+    </scm>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
