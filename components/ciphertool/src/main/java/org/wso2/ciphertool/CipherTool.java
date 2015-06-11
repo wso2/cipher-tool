@@ -70,21 +70,6 @@ public class CipherTool {
      * @param args command line arguments
      */
     private static void initialize(String[] args) {
-        String osName = System.getProperty(Constants.OS_NAME);
-        File file;
-        if (!osName.toLowerCase().contains("win")) {
-            file = new File("." + File.separator + ".." + File.separator);
-        } else {
-            file = new File("." + File.separator);
-        }
-
-        String carbonHome;
-        try {
-            carbonHome = file.getCanonicalFile().toString();
-        } catch (IOException e) {
-            throw new CipherToolException("IOError while calculating CARBON_HOME directory location ", e);
-        }
-
         String property;
         for (String arg : args) {
             if (arg.equals("-help")) {
@@ -96,21 +81,15 @@ public class CipherTool {
                     System.setProperty(property, "true");
                 } else if (property.equals(Constants.CHANGE)) {
                     System.setProperty(property, "true");
-                } else if (property.equals(Constants.KEYSTORE_PASSWORD)) {
-                    property = arg.substring(11);
-                    System.setProperty(Constants.KEYSTORE_PASSWORD, property);
+                } else if (property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
+                    System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
                     System.out.println("This option is not define!");
                     System.exit(0);
                 }
             }
         }
-
-        if (carbonHome == null || carbonHome.isEmpty()) {
-            carbonHome =
-                    Utils.getValueFromConsole("CARBON_HOME is not properly set. Please Enter CARBON_HOME again : ");
-        }
-        Utils.setSystemProperties(carbonHome);
+        Utils.setSystemProperties();
     }
 
     /**
@@ -123,7 +102,7 @@ public class CipherTool {
         System.out.println("Options :\n");
 
         System.out.println("\t-Dconfigure\t\t This option would allow user to secure plain text passwords in carbon " +
-                           "configuration files. CipherTool replace all the password listed in " +
+                           "configuration files. CipherTool will replace all the passwords listed in " +
                            "cipher-text.properties file with encrypted values and modify related password elements " +
                            "in the configuration files with secret alias names. Also secret-conf.properties file is " +
                            "modified with the default configuration data");
@@ -136,8 +115,8 @@ public class CipherTool {
     }
 
     private static void encryptedValue(Cipher cipher) {
-        String firstPassword = Utils.getValueFromConsole("Enter Plain Text Value : ");
-        String secondPassword = Utils.getValueFromConsole("Please Enter Value Again : ");
+        String firstPassword = Utils.getValueFromConsole("Enter Plain Text Value : ", true);
+        String secondPassword = Utils.getValueFromConsole("Please Enter Value Again : ", true);
 
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
             String encryptedText = doEncryption(cipher, firstPassword);
@@ -182,8 +161,8 @@ public class CipherTool {
                 aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
             } else {
                 String xPathConsole = Utils.getValueFromConsole("XPath value for secret alias '" + passwordAlias +
-                                                    "' cannot be found. Please enter XPath manually: ");
-                String configFileConsole = Utils.getValueFromConsole("Please enter configuration file : ");
+                                                    "' cannot be found. Please enter XPath manually: ", false);
+                String configFileConsole = Utils.getValueFromConsole("Please enter configuration file : ", false);
 
                 if (!xPathConsole.trim().equals("") && !configFileConsole.trim().equals("")) {
                     configFileXpathMap.put(passwordAlias, xPathConsole.trim() + configFileConsole.trim());
@@ -316,9 +295,9 @@ public class CipherTool {
         Utils.writeToPropertyFile(properties, System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
     }
 
-    public static String getPasswordFromConsole(String key, Cipher cipher) {
-        String firstPassword = Utils.getValueFromConsole("Enter Password of Secret Alias - '" + key + "' : ");
-        String secondPassword = Utils.getValueFromConsole("Please Enter Password Again : ");
+    private static String getPasswordFromConsole(String key, Cipher cipher) {
+        String firstPassword = Utils.getValueFromConsole("Enter Password of Secret Alias - '" + key + "' : ", true);
+        String secondPassword = Utils.getValueFromConsole("Please Enter Password Again : ", true);
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
             aliasPasswordMap.put(key, doEncryption(cipher, firstPassword));
             return doEncryption(cipher, firstPassword);
@@ -343,13 +322,16 @@ public class CipherTool {
             i++;
         }
         while (true) {
-            String buffer = Utils.getValueFromConsole("Please enter the Number which is corresponding to " +
-                               "the Password that is needed be changed [Press Enter to Skip] : ");
-            if (!buffer.trim().equals("")) {
-                String selectedPasswordAlias = keyValueList.get(Integer.parseInt(buffer.trim()) - 1);
+            String value = Utils.getValueFromConsole("Please enter the Number which is corresponding to " +
+                               "the Password that is needed be changed [Press Enter to Skip] : ", false);
+            if (!value.trim().equals("")) {
+                String selectedPasswordAlias = keyValueList.get(Integer.parseInt(value.trim()) - 1);
                 String newEncryptedValue = getPasswordFromConsole(selectedPasswordAlias, cipher);
                 aliasPasswordMap.put(selectedPasswordAlias, newEncryptedValue);
             } else {
+                cipherTextProperties.putAll(aliasPasswordMap);
+                Utils.writeToPropertyFile(cipherTextProperties,
+                                          System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
                 break;
             }
         }

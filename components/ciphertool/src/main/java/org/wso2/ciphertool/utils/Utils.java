@@ -33,13 +33,22 @@ public class Utils {
     /**
      * Retrieve value from command-line
      */
-    public static String getValueFromConsole(String msg) {
-        Console console;
-        char[] value;
-        if ((console = System.console()) != null && (value = console.readPassword("[%s]", msg)) != null) {
-            return String.valueOf(value);
+    public static String getValueFromConsole(String msg, boolean isPassword) {
+        Console console = System.console();
+        if (console!= null) {
+            if (isPassword) {
+                char[] password;
+                if ((password = console.readPassword("[%s]", msg)) != null) {
+                    return String.valueOf(password);
+                }
+            } else {
+                String value;
+                if ((value = console.readLine("[%s]", msg)) != null) {
+                    return value;
+                }
+            }
         }
-        return "";
+        throw new CipherToolException("String cannot be null");
     }
 
     /**
@@ -52,23 +61,22 @@ public class Utils {
         Properties properties = new Properties();
         File file = new File(filePath);
         if (!file.exists()) {
-            //ToDO : Check if we need to print an error and exit if file doesnot exist
             return properties;
         }
 
-        InputStream in = null;
+        InputStream inputStream = null;
         try {
-            in = new FileInputStream(file);
-            properties.load(in);
+            inputStream = new FileInputStream(file);
+            properties.load(inputStream);
         } catch (IOException e) {
             String msg = "Error loading properties from a file at :" + filePath;
             throw new CipherToolException(msg + " Error : " + e.getMessage());
         } finally {
-            if (in != null) {
+            if (inputStream != null) {
                 try {
-                    in.close();
-                } catch (IOException ignored) {
-                    throw new CipherToolException("Error while closing input stream");
+                    inputStream.close();
+                } catch (IOException e) {
+                    System.err.println("Error while closing input stream");
                 }
             }
         }
@@ -83,51 +91,55 @@ public class Utils {
      */
     public static File getConfigFile(String fileName) {
 
-        String carbonHome = System.getProperty(Constants.CARBON_HOME);
-        String filePath = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+        String homeFolder = System.getProperty(Constants.HOME_FOLDER);
+        String filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
                           File.separator + fileName;
         File configFile = new File(filePath);
         if (!configFile.exists()) {
-            filePath = carbonHome + fileName;
+            filePath = homeFolder + File.separator  + fileName;
             configFile = new File(filePath);
         }
 
         if (!configFile.exists()) {
-            filePath = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
                        File.separator + Constants.SECURITY_DIR + File.separator + fileName;
             configFile = new File(filePath);
         }
 
         if (!configFile.exists()) {
-            filePath = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
                        File.separator + Constants.AXIS2_DIR + File.separator + fileName;
             configFile = new File(filePath);
         }
 
         if (!configFile.exists()) {
-            filePath = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
                        File.separator + Constants.TOMCAT_DIR + File.separator + fileName;
             configFile = new File(filePath);
         }
 
         if (!configFile.exists()) {
-            filePath = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
                        File.separator + Constants.ETC_DIR + File.separator + fileName;
             configFile = new File(filePath);
         }
 
         if (!configFile.exists()) {
-            filePath = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
                        File.separator + Constants.DATA_SOURCE_DIRECTORY + File.separator + fileName;
             configFile = new File(filePath);
         }
 
         if (!configFile.exists()) {
             filePath =
-                    carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.DEPLOYMENT_DIR +
+                    homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.DEPLOYMENT_DIR +
                     File.separator + Constants.SERVER_DIR + File.separator + Constants.USERSTORE_DIR + File.separator +
                     fileName;
             configFile = new File(filePath);
+        }
+
+        if (!configFile.exists()) {
+            throw new CipherToolException("Cannot find file : " + fileName);
         }
 
         return configFile;
@@ -147,7 +159,7 @@ public class Utils {
                     fileOutputStream.close();
                 }
             } catch (IOException e) {
-                throw new CipherToolException("Error while closing output stream");
+                System.err.println("Error while closing output stream");
             }
         }
     }
@@ -200,76 +212,103 @@ public class Utils {
         System.out.println("\nSecret Configurations are written to the property file successfully\n");
     }
 
-    public static void setSystemProperties(String carbonHome) {
-        System.setProperty(Constants.CARBON_HOME, carbonHome);
-        String nonCarbonConfigFile = carbonHome + System.getProperty("config.properties.dir",
-                                                                     Constants.REPOSITORY_DIR + File.separator +
-                                                                     Constants.CONF_DIR + File.separator +
-                                                                     Constants.SECURITY_DIR) + File.separator +
-                                     Constants.CIPHER_TOOL_CONFIG_PROPERTY_FILE;
-        Properties nonCarbonConfigProp = Utils.loadProperties(nonCarbonConfigFile);
-        String carbonConfigFile = carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator
-                                  + Constants.CONF_DIR + File.separator + Constants.CARBON_CONFIG_FILE;
-        String keyStoreFile, keyType, keyAlias;
-        try {
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            Document document = docBuilder.parse(carbonConfigFile);
+    public static void setSystemProperties() {
 
-            keyStoreFile = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
-            if (keyStoreFile == null) {
-                keyStoreFile = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
-                                                       Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
-                keyStoreFile = carbonHome + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
-                System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
-            }
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
-
-            keyType = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
-            if (keyType == null) {
-                keyType = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
-                                                  Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
-                if (keyType == null) {
-                    throw new CipherToolException("KeyStore Type can not be null");
-                }
-            }
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY, keyType);
-
-            keyAlias = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
-            if (keyAlias == null) {
-                keyAlias = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
-                                                   Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
-            }
-            System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY, keyAlias);
-
-        } catch (ParserConfigurationException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
-        } catch (SAXException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
-        } catch (IOException e) {
-            throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+        String osName = System.getProperty(Constants.OS_NAME);
+        File file;
+        if (!osName.toLowerCase().contains("win")) {
+            file = new File("." + File.separator + ".." + File.separator);
+        } else {
+            file = new File("." + File.separator);
         }
 
-        String secretConfPropFile = nonCarbonConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
-        String secretConfFile, cipherTextPropFile, cipherToolPropFile;
-        if (secretConfPropFile == null) {
-            secretConfFile = System.getProperty(Constants.CARBON_HOME) + File.separator + Constants.REPOSITORY_DIR +
-                             File.separator + Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR +
-                             File.separator + Constants.SECRET_PROPERTY_FILE;
-            cipherTextPropFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
-                                 Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TEXT_PROPERTY_FILE;
-            cipherToolPropFile =
-                    carbonHome + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                    File.separator + Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TOOL_PROPERTY_FILE;
+        String homeFolder;
+        try {
+            homeFolder = file.getCanonicalFile().toString();
+        } catch (IOException e) {
+            throw new CipherToolException("IOError while calculating HOME_FOLDER directory location ", e);
+        }
+
+        String keyStoreFile, keyType, keyAlias, secretConfPropFile, secretConfFile, cipherTextPropFile,
+                cipherToolPropFile;
+
+        //Verify if this is WSO2 envirnoment
+        String carbonConfigFile = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator
+                                  + Constants.CONF_DIR + File.separator + Constants.CARBON_CONFIG_FILE;
+        File carbonXML = new File(carbonConfigFile);
+        if (carbonXML.exists()) {
+            //WSO2 Envirnoment
+            try {
+                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+                Document document = docBuilder.parse(carbonConfigFile);
+
+                keyStoreFile = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
+                                                       Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
+                keyStoreFile = homeFolder + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
+                System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
+                keyType = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
+                                                  Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
+                keyAlias = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
+                                                   Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
+
+                secretConfFile = homeFolder + File.separator + Constants.REPOSITORY_DIR +
+                                 File.separator + Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR +
+                                 File.separator + Constants.SECRET_PROPERTY_FILE;
+                cipherTextPropFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
+                                     Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TEXT_PROPERTY_FILE;
+                cipherToolPropFile =
+                        homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
+                        File.separator + Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TOOL_PROPERTY_FILE;
+
+            } catch (ParserConfigurationException e) {
+                throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+            } catch (SAXException e) {
+                throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+            } catch (IOException e) {
+                throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+            }
         } else {
-            secretConfFile = System.getProperty(Constants.CARBON_HOME) + File.separator + secretConfPropFile;
+            file = new File("." + File.separator);
+            try {
+                homeFolder = file.getCanonicalFile().toString();
+            } catch (IOException e) {
+                throw new CipherToolException("IOError while calculating HOME_FOLDER directory location ", e);
+            }
+
+            String nonCarbonConfigFile =
+                    homeFolder + System.getProperty("config.properties.dir", File.separator + Constants.CONF_DIR) +
+                    File.separator + Constants.CIPHER_TOOL_CONFIG_PROPERTY_FILE;
+
+            Properties nonCarbonConfigProp = Utils.loadProperties(nonCarbonConfigFile);
+            if (nonCarbonConfigProp.size() <= 0) {
+                throw new CipherToolException("Cipher-tool-config.properties cannot be empty");
+            }
+
+            keyStoreFile = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
+            keyType = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
+            keyAlias = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
+            secretConfPropFile = nonCarbonConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
+            secretConfFile = homeFolder + File.separator + secretConfPropFile;
             cipherTextPropFile = nonCarbonConfigProp.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY);
             cipherToolPropFile = nonCarbonConfigProp.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY);
         }
+
+        if (keyStoreFile.trim().isEmpty()) {
+            throw new CipherToolException("KeyStore file path cannot be empty");
+        }
+        if (keyAlias == null || keyAlias.trim().isEmpty()) {
+            throw new CipherToolException("Key alias cannot be empty");
+        }
+
+        System.setProperty(Constants.HOME_FOLDER, homeFolder);
+        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
+        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY, keyType);
+        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY, keyAlias);
         System.setProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY, secretConfFile);
         System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, cipherTextPropFile);
         System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY,
-                           carbonHome + File.separator + cipherTextPropFile);
+                           homeFolder + File.separator + cipherTextPropFile);
         System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, cipherToolPropFile);
     }
 }

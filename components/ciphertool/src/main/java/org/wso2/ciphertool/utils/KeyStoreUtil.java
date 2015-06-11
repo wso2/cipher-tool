@@ -42,7 +42,7 @@ public class KeyStoreUtil {
             System.getProperty(Constants.KEYSTORE_PASSWORD).length() > 0) {
             password = System.getProperty(Constants.KEYSTORE_PASSWORD);
         } else {
-            password = Utils.getValueFromConsole("Please Enter Primary KeyStore Password of Carbon Server : ");
+            password = Utils.getValueFromConsole("Please Enter Primary KeyStore Password of Carbon Server : ", true);
         }
         if (password == null) {
             throw new CipherToolException("KeyStore password can not be null");
