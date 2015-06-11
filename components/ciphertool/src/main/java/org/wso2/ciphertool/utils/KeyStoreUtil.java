@@ -31,8 +31,11 @@ import java.security.cert.CertificateException;
 
 public class KeyStoreUtil {
 
+    /**
+     * Initializes the Cipher
+     * @return
+     */
     public static Cipher initializeCipher() {
-
         Cipher cipher;
         String keyStoreFile = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
@@ -77,7 +80,7 @@ public class KeyStoreUtil {
         } catch (KeyStoreException e) {
             throw new CipherToolException("Error loading keyStore from ' " + location + " ' ", e);
         } catch (IOException e) {
-            throw new CipherToolException("IOError loading keyStore from ' " + location + " ' ", e);
+            throw new CipherToolException("Error loading keyStore from ' " + location + " ' ", e);
         } catch (NoSuchAlgorithmException e) {
             throw new CipherToolException("Error loading keyStore from ' " + location + " ' ", e);
         } catch (CertificateException e) {

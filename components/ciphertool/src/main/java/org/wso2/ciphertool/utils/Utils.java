@@ -145,6 +145,11 @@ public class Utils {
         return configFile;
     }
 
+    /**
+     * writees the properties into a file
+     * @param properties
+     * @param filePath
+     */
     public static void writeToPropertyFile(Properties properties, String filePath) {
         FileOutputStream fileOutputStream = null;
         try {
@@ -164,7 +169,13 @@ public class Utils {
         }
     }
 
-    public static String getPrimaryKeyInfo(Element element, String xPath) {
+    /**
+     * retrieve the value for the given xpath from the file
+     * @param element
+     * @param xPath
+     * @return
+     */
+    public static String getValueFromXPath(Element element, String xPath) {
         String nodeValue = null;
         try {
             XPathFactory xpf = XPathFactory.newInstance();
@@ -180,6 +191,9 @@ public class Utils {
         return nodeValue;
     }
 
+    /**
+     * Write to the Secret-conf.properties
+     */
     public static void writeToSecureConfPropertyFile() {
         Properties properties = new Properties();
 
@@ -212,6 +226,9 @@ public class Utils {
         System.out.println("\nSecret Configurations are written to the property file successfully\n");
     }
 
+    /**
+     * Set the system properties
+     */
     public static void setSystemProperties() {
 
         String osName = System.getProperty(Constants.OS_NAME);
@@ -226,7 +243,7 @@ public class Utils {
         try {
             homeFolder = file.getCanonicalFile().toString();
         } catch (IOException e) {
-            throw new CipherToolException("IOError while calculating HOME_FOLDER directory location ", e);
+            throw new CipherToolException("Error while calculating HOME_FOLDER directory location ", e);
         }
 
         String keyStoreFile, keyType, keyAlias, secretConfPropFile, secretConfFile, cipherTextPropFile,
@@ -243,13 +260,13 @@ public class Utils {
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
                 Document document = docBuilder.parse(carbonConfigFile);
 
-                keyStoreFile = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
+                keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
                                                        Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
                 keyStoreFile = homeFolder + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
                 System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
-                keyType = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
+                keyType = Utils.getValueFromXPath(document.getDocumentElement(),
                                                   Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
-                keyAlias = Utils.getPrimaryKeyInfo(document.getDocumentElement(),
+                keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
                                                    Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
 
                 secretConfFile = homeFolder + File.separator + Constants.REPOSITORY_DIR +
@@ -262,18 +279,21 @@ public class Utils {
                         File.separator + Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TOOL_PROPERTY_FILE;
 
             } catch (ParserConfigurationException e) {
-                throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+                throw new CipherToolException(
+                        "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             } catch (SAXException e) {
-                throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+                throw new CipherToolException(
+                        "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             } catch (IOException e) {
-                throw new CipherToolException("Error reading primary key Store details from carbon.xml file ", e);
+                throw new CipherToolException(
+                        "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             }
         } else {
             file = new File("." + File.separator);
             try {
                 homeFolder = file.getCanonicalFile().toString();
             } catch (IOException e) {
-                throw new CipherToolException("IOError while calculating HOME_FOLDER directory location ", e);
+                throw new CipherToolException("Error while calculating HOME_FOLDER directory location ", e);
             }
 
             String nonCarbonConfigFile =

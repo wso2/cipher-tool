@@ -114,6 +114,11 @@ public class CipherTool {
                            "not recommended.\n");
     }
 
+    /**
+     * encrypt text retrieved from Console
+     *
+     * @param cipher cipher
+     */
     private static void encryptedValue(Cipher cipher) {
         String firstPassword = Utils.getValueFromConsole("Enter Plain Text Value : ", true);
         String secondPassword = Utils.getValueFromConsole("Please Enter Value Again : ", true);
@@ -147,6 +152,9 @@ public class CipherTool {
         return encodedValue;
     }
 
+    /**
+     * loads the secret alias, config filename and xpath
+     */
     private static void loadXpathValuesAndPasswordDetails() {
         Properties cipherToolProperties = Utils.loadProperties(System.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY));
         for (Object key : cipherToolProperties.keySet()) {
@@ -254,7 +262,7 @@ public class CipherTool {
                         "Error writing protected token [" + secretAlias + "] to " + fileName + " file ", e);
             } catch (XPathExpressionException e) {
                 throw new CipherToolException(
-                        "IOError writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
+                        "Error writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
             } catch (TransformerException e) {
                 throw new CipherToolException(
                         "Error writing protected token [" + secretAlias + "] to " + fileName + " file ", e);
@@ -263,7 +271,7 @@ public class CipherTool {
                         "Error writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
             } catch (IOException e) {
                 throw new CipherToolException(
-                        "IOError writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
+                        "Error writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
             }
 
             System.out.println("Protected Token [" + secretAlias + "] is updated in " + fileName + " successfully\n");
@@ -295,12 +303,19 @@ public class CipherTool {
         Utils.writeToPropertyFile(properties, System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
     }
 
+    /**
+     * returns the encrypted value entered via the Console for the given Secret Alias
+     * @param key
+     * @param cipher
+     * @return encrypted value
+     */
     private static String getPasswordFromConsole(String key, Cipher cipher) {
         String firstPassword = Utils.getValueFromConsole("Enter Password of Secret Alias - '" + key + "' : ", true);
         String secondPassword = Utils.getValueFromConsole("Please Enter Password Again : ", true);
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
-            aliasPasswordMap.put(key, doEncryption(cipher, firstPassword));
-            return doEncryption(cipher, firstPassword);
+            String encryptedValue = doEncryption(cipher, firstPassword);
+            aliasPasswordMap.put(key, encryptedValue);
+            return encryptedValue;
         } else {
             throw new CipherToolException("Error : Password does not match");
         }
