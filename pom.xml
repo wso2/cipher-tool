@@ -35,11 +35,6 @@
                 <artifactId>org.wso2.ciphertool</artifactId>
                 <version>${wso2.ciphertool.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.ws.commons.axiom.wso2</groupId>
-                <artifactId>axiom</artifactId>
-                <version>${orbit.version.axiom}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -213,9 +213,6 @@ public class CipherTool {
     private static void tokenToConfigFile(String fileName, String xPath, String secretAlias, String encryptParamKey) {
         if (xPath != null && !xPath.equals("") && secretAlias != null && !secretAlias.equals("")) {
             File configFile = Utils.getConfigFile(fileName);
-            if (!configFile.exists()) {
-                return;
-            }
             String filePath = configFile.getPath();
             try {
                 DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -292,7 +289,6 @@ public class CipherTool {
                 if (value.contains("[") && value.indexOf("]") > 0) {
                     value = value.substring(value.indexOf("[") + 1, value.indexOf("]"));
                     value = doEncryption(cipher, value);
-                    aliasPasswordMap.put(entry.getKey(), value);
                 }
             } else {
                 value = getPasswordFromConsole(entry.getKey(), cipher);
