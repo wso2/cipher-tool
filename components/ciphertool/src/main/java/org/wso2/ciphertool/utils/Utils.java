@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * <p/>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class Utils {
@@ -55,7 +60,7 @@ public class Utils {
      * read values from property file
      *
      * @param filePath file path
-     * @return Properties
+     * @return Properties properties
      */
     public static Properties loadProperties(String filePath) {
         Properties properties = new Properties();
@@ -87,68 +92,53 @@ public class Utils {
      * returns the configuration file
      *
      * @param fileName file name
-     * @return File
+     * @return File file
      */
-    public static File getConfigFile(String fileName) {
+    public static String getConfigFile(String fileName) {
 
         String homeFolder = System.getProperty(Constants.HOME_FOLDER);
-        String filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                          File.separator + fileName;
-        File configFile = new File(filePath);
-        if (!configFile.exists()) {
-            filePath = homeFolder + File.separator  + fileName;
-            configFile = new File(filePath);
+        Path filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, fileName);
+        if (!Files.exists(filePath)) {
+            filePath = Paths.get(homeFolder, fileName);
+            if (!Files.exists(filePath)) {
+                filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.SECURITY_DIR,
+                                     fileName);
+                if (!Files.exists(filePath)) {
+                    filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.AXIS2_DIR,
+                                         fileName);
+                    if (!Files.exists(filePath)) {
+                        filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR,
+                                             Constants.TOMCAT_DIR, fileName);
+                        if (!Files.exists(filePath)) {
+                            filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR,
+                                                 Constants.ETC_DIR, fileName);
+                            if (!Files.exists(filePath)) {
+                                filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR,
+                                                     Constants.DATA_SOURCE_DIRECTORY, fileName);
+                                if (!Files.exists(filePath)) {
+                                    filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.DEPLOYMENT_DIR,
+                                                         Constants.SERVER_DIR, Constants.USERSTORE_DIR, fileName);
+                                    if (!Files.exists(filePath)) {
+                                        filePath = Paths.get(fileName);
+                                        if (!Files.exists(filePath)) {
+                                            throw new CipherToolException("Cannot find file : " + fileName);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        if (!configFile.exists()) {
-            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                       File.separator + Constants.SECURITY_DIR + File.separator + fileName;
-            configFile = new File(filePath);
-        }
-
-        if (!configFile.exists()) {
-            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                       File.separator + Constants.AXIS2_DIR + File.separator + fileName;
-            configFile = new File(filePath);
-        }
-
-        if (!configFile.exists()) {
-            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                       File.separator + Constants.TOMCAT_DIR + File.separator + fileName;
-            configFile = new File(filePath);
-        }
-
-        if (!configFile.exists()) {
-            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                       File.separator + Constants.ETC_DIR + File.separator + fileName;
-            configFile = new File(filePath);
-        }
-
-        if (!configFile.exists()) {
-            filePath = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                       File.separator + Constants.DATA_SOURCE_DIRECTORY + File.separator + fileName;
-            configFile = new File(filePath);
-        }
-
-        if (!configFile.exists()) {
-            filePath =
-                    homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.DEPLOYMENT_DIR +
-                    File.separator + Constants.SERVER_DIR + File.separator + Constants.USERSTORE_DIR + File.separator +
-                    fileName;
-            configFile = new File(filePath);
-        }
-
-        if (!configFile.exists()) {
-            throw new CipherToolException("Cannot find file : " + fileName);
-        }
-
-        return configFile;
+        return filePath.toAbsolutePath().toString();
     }
 
     /**
      * writees the properties into a file
-     * @param properties
-     * @param filePath
+     * @param properties properties
+     * @param filePath filepath
      */
     public static void writeToPropertyFile(Properties properties, String filePath) {
         FileOutputStream fileOutputStream = null;
@@ -171,9 +161,9 @@ public class Utils {
 
     /**
      * retrieve the value for the given xpath from the file
-     * @param element
-     * @param xPath
-     * @return
+     * @param element element
+     * @param xPath xpath
+     * @return value from xpath
      */
     public static String getValueFromXPath(Element element, String xPath) {
         String nodeValue = null;
@@ -230,35 +220,20 @@ public class Utils {
      * Set the system properties
      */
     public static void setSystemProperties() {
-
-        String osName = System.getProperty(Constants.OS_NAME);
-        File file;
-        if (!osName.toLowerCase().contains("win")) {
-            file = new File("." + File.separator + ".." + File.separator);
-        } else {
-            file = new File("." + File.separator);
-        }
-
-        String homeFolder;
-        try {
-            homeFolder = file.getCanonicalFile().toString();
-        } catch (IOException e) {
-            throw new CipherToolException("Error while calculating HOME_FOLDER directory location ", e);
-        }
-
         String keyStoreFile, keyType, keyAlias, secretConfPropFile, secretConfFile, cipherTextPropFile,
                 cipherToolPropFile;
 
-        //Verify if this is WSO2 envirnoment
-        String carbonConfigFile = homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator
-                                  + Constants.CONF_DIR + File.separator + Constants.CARBON_CONFIG_FILE;
-        File carbonXML = new File(carbonConfigFile);
-        if (carbonXML.exists()) {
-            //WSO2 Envirnoment
+        String homeFolder = System.getProperty(Constants.CARBON_HOME);
+
+        //Verify if this is WSO2 environment
+        Path path = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.CARBON_CONFIG_FILE);
+
+        if (Files.exists(path)) {
+            //WSO2 Environment
             try {
                 DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-                Document document = docBuilder.parse(carbonConfigFile);
+                Document document = docBuilder.parse(path.toAbsolutePath().toString());
 
                 keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
                                                        Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
@@ -289,29 +264,28 @@ public class Utils {
                         "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             }
         } else {
-            file = new File("." + File.separator);
-            try {
-                homeFolder = file.getCanonicalFile().toString();
-            } catch (IOException e) {
-                throw new CipherToolException("Error while calculating HOME_FOLDER directory location ", e);
+
+            Path currentPath = Paths.get("");
+            homeFolder = currentPath.toAbsolutePath().toString();
+            Path standaloneConfigPath =
+                    Paths.get(homeFolder, Constants.CONF_DIR, Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE);
+            if (!Files.exists(standaloneConfigPath)) {
+                throw new CipherToolException(
+                        "File, " + Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE + " does not exist.");
+            }
+            Properties standaloneConfigProp = Utils.loadProperties(standaloneConfigPath.toAbsolutePath().toString());
+            if (standaloneConfigProp.size() <= 0) {
+                throw new CipherToolException(
+                        "File, " + Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE + " cannot be empty");
             }
 
-            String nonCarbonConfigFile =
-                    homeFolder + System.getProperty("config.properties.dir", File.separator + Constants.CONF_DIR) +
-                    File.separator + Constants.CIPHER_TOOL_CONFIG_PROPERTY_FILE;
-
-            Properties nonCarbonConfigProp = Utils.loadProperties(nonCarbonConfigFile);
-            if (nonCarbonConfigProp.size() <= 0) {
-                throw new CipherToolException("Cipher-tool-config.properties cannot be empty");
-            }
-
-            keyStoreFile = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
-            keyType = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
-            keyAlias = nonCarbonConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
-            secretConfPropFile = nonCarbonConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
+            keyStoreFile = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
+            keyType = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
+            keyAlias = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
+            secretConfPropFile = standaloneConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
             secretConfFile = homeFolder + File.separator + secretConfPropFile;
-            cipherTextPropFile = nonCarbonConfigProp.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY);
-            cipherToolPropFile = nonCarbonConfigProp.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY);
+            cipherTextPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY);
+            cipherToolPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY);
         }
 
         if (keyStoreFile.trim().isEmpty()) {

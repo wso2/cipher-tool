@@ -33,7 +33,7 @@ public class KeyStoreUtil {
 
     /**
      * Initializes the Cipher
-     * @return
+     * @return cipher cipher
      */
     public static Cipher initializeCipher() {
         Cipher cipher;
@@ -89,8 +89,8 @@ public class KeyStoreUtil {
             if (bufferedInputStream != null) {
                 try {
                     bufferedInputStream.close();
-                } catch (IOException ignored) {
-                    throw new CipherToolException("Error while closing input stream");
+                } catch (IOException e) {
+                    System.err.println("Error while closing input stream");
                 }
             }
         }

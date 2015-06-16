@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * <p/>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,7 @@ public class Constants {
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";
     public static final String CHANGE = "change";
+    public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
 
     public static final String REPOSITORY_DIR = "repository";
@@ -43,7 +44,7 @@ public class Constants {
 
     public static final String CIPHER_TEXT_PROPERTY_FILE_PROPERTY = "cipher.text.properties.file";
     public static final String CIPHER_TOOL_PROPERTY_FILE_PROPERTY = "cipher.tool.properties.file";
-    public static final String CIPHER_TOOL_CONFIG_PROPERTY_FILE = "cipher-tool-config.properties";
+    public static final String CIPHER_STANDALONE_CONFIG_PROPERTY_FILE = "cipher-standalone-config.properties";
     public static final String SECRET_PROPERTY_FILE_PROPERTY = "secret.conf.properties.file";
 
     public static final class PrimaryKeyStore {

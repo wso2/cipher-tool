@@ -2,3 +2,6 @@ instructions.configure = \
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.ciphertool_${feature.version}/lib,target:${installFolder}/../../../lib,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.ciphertool_${feature.version}/bin,target:${installFolder}/../../../bin,overwrite:true);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.ciphertool_${feature.version}/conf,target:${installFolder}/../../conf/security,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.remove(path:${installFolder}/../features/org.wso2.ciphertool_${feature.version}/lib);\
+org.eclipse.equinox.p2.touchpoint.natives.remove(path:${installFolder}/../features/org.wso2.ciphertool_${feature.version}/bin);\
+org.eclipse.equinox.p2.touchpoint.natives.remove(path:${installFolder}/../features/org.wso2.ciphertool_${feature.version}/conf);\

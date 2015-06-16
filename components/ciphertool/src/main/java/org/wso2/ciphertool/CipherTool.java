@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- * <p/>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -168,14 +168,7 @@ public class CipherTool {
             if (configFileXpathMap.containsKey(passwordAlias)) {
                 aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
             } else {
-                String xPathConsole = Utils.getValueFromConsole("XPath value for secret alias '" + passwordAlias +
-                                                    "' cannot be found. Please enter XPath manually: ", false);
-                String configFileConsole = Utils.getValueFromConsole("Please enter configuration file : ", false);
-
-                if (!xPathConsole.trim().equals("") && !configFileConsole.trim().equals("")) {
-                    configFileXpathMap.put(passwordAlias, xPathConsole.trim() + configFileConsole.trim());
-                    aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
-                }
+                throw new CipherToolException("XPath value for secret alias '" + passwordAlias + "' cannot be found.");
             }
         }
     }
@@ -212,8 +205,7 @@ public class CipherTool {
      */
     private static void tokenToConfigFile(String fileName, String xPath, String secretAlias, String encryptParamKey) {
         if (xPath != null && !xPath.equals("") && secretAlias != null && !secretAlias.equals("")) {
-            File configFile = Utils.getConfigFile(fileName);
-            String filePath = configFile.getPath();
+            String filePath = Utils.getConfigFile(fileName);;
             try {
                 DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -301,8 +293,8 @@ public class CipherTool {
 
     /**
      * returns the encrypted value entered via the Console for the given Secret Alias
-     * @param key
-     * @param cipher
+     * @param key key
+     * @param cipher cipher
      * @return encrypted value
      */
     private static String getPasswordFromConsole(String key, Cipher cipher) {
