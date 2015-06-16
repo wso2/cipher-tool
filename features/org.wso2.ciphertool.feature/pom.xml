@@ -119,11 +119,11 @@
                         <id>clean_target</id>
                         <phase>install</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <delete dir="src/main/resources"/>
                                 <delete dir="src/main"/>
                                 <delete dir="src"/>
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
