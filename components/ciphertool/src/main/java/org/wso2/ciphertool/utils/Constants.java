@@ -25,17 +25,11 @@ public class Constants {
     public static final String CHANGE = "change";
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
+    public static final String TRUE = "true";
 
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
-    public static final String AXIS2_DIR = "axis2";
-    public static final String TOMCAT_DIR = "tomcat";
-    public static final String ETC_DIR = "etc";
-    public static final String DATA_SOURCE_DIRECTORY = "datasources";
-    public static final String DEPLOYMENT_DIR = "deployment";
-    public static final String SERVER_DIR = "server";
-    public static final String USERSTORE_DIR = "userstores";
 
     public static final String CARBON_CONFIG_FILE = "carbon.xml";
     public static final String CIPHER_TEXT_PROPERTY_FILE = "cipher-text.properties";

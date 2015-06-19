@@ -51,13 +51,14 @@ public class CipherTool {
 
         initialize(args);
         Cipher cipher = KeyStoreUtil.initializeCipher();
-        if (System.getProperty(Constants.CONFIGURE) != null && System.getProperty(Constants.CONFIGURE).equals("true")) {
+        if (System.getProperty(Constants.CONFIGURE) != null &&
+            System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
             loadXpathValuesAndPasswordDetails();
             secureVaultConfigTokens();
             encryptCipherTextFile(cipher);
             Utils.writeToSecureConfPropertyFile();
         } else if (System.getProperty(Constants.CHANGE) != null &&
-                   System.getProperty(Constants.CHANGE).equals("true")) {
+                   System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
             changePassword(cipher);
         } else {
             encryptedValue(cipher);
@@ -78,14 +79,14 @@ public class CipherTool {
             } else if (arg.substring(0, 2).equals("-D")) {
                 property = arg.substring(2);
                 if (property.equals(Constants.CONFIGURE)) {
-                    System.setProperty(property, "true");
+                    System.setProperty(property, Constants.TRUE);
                 } else if (property.equals(Constants.CHANGE)) {
-                    System.setProperty(property, "true");
+                    System.setProperty(property, Constants.TRUE);
                 } else if (property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
                     System.out.println("This option is not define!");
-                    System.exit(0);
+                    System.exit(-1);
                 }
             }
         }
@@ -156,13 +157,15 @@ public class CipherTool {
      * loads the secret alias, config filename and xpath
      */
     private static void loadXpathValuesAndPasswordDetails() {
-        Properties cipherToolProperties = Utils.loadProperties(System.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY));
+        Properties cipherToolProperties =
+                Utils.loadProperties(System.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY));
         for (Object key : cipherToolProperties.keySet()) {
             String passwordAlias = (String) key;
             configFileXpathMap.put(passwordAlias, cipherToolProperties.getProperty(passwordAlias));
         }
 
-        Properties cipherTextProperties = Utils.loadProperties(System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+        Properties cipherTextProperties =
+                Utils.loadProperties(System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         for (Object key : cipherTextProperties.keySet()) {
             String passwordAlias = (String) key;
             if (configFileXpathMap.containsKey(passwordAlias)) {
@@ -180,16 +183,20 @@ public class CipherTool {
         for (Map.Entry<String, String> entry : configFileXpathMap.entrySet()) {
             String unprocessedXpath = entry.getValue();
             String encryptParamKey = "", XPath;
-            String fileName = unprocessedXpath.substring(0, unprocessedXpath.indexOf("//"));
+            int endofFilePath = unprocessedXpath.indexOf("//");
+            if (endofFilePath < 0) {
+                throw new CipherToolException("XPath is not defined for " + entry.getKey());
+            }
+            String fileName = unprocessedXpath.substring(0, endofFilePath);
             if (unprocessedXpath.indexOf(",") > 0) {
                 if ((unprocessedXpath.substring(unprocessedXpath.indexOf(",") + 1)).trim().equals("true") &&
                     unprocessedXpath.charAt(unprocessedXpath.indexOf(",") - 1) == ']') {
                     encryptParamKey = unprocessedXpath
                             .substring(unprocessedXpath.lastIndexOf('[') + 2, unprocessedXpath.indexOf(",") - 1);
                 }
-                XPath = unprocessedXpath.substring(unprocessedXpath.indexOf("//"), unprocessedXpath.indexOf(","));
+                XPath = unprocessedXpath.substring(endofFilePath, unprocessedXpath.indexOf(","));
             } else {
-                XPath = unprocessedXpath.substring(unprocessedXpath.indexOf("//"));
+                XPath = unprocessedXpath.substring(endofFilePath);
             }
             tokenToConfigFile(fileName, XPath, entry.getKey(), encryptParamKey);
         }
@@ -205,7 +212,7 @@ public class CipherTool {
      */
     private static void tokenToConfigFile(String fileName, String xPath, String secretAlias, String encryptParamKey) {
         if (xPath != null && !xPath.equals("") && secretAlias != null && !secretAlias.equals("")) {
-            String filePath = Utils.getConfigFile(fileName);;
+            String filePath = Utils.getConfigFilePath(fileName);
             try {
                 DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -321,22 +328,25 @@ public class CipherTool {
             String passwordAlias = (String) key;
             aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
             keyValueList.add(passwordAlias);
-            System.out.println("[" + i + "] " + passwordAlias);
-            i++;
+            System.out.println("[" + i++ + "] " + passwordAlias);
         }
-        while (true) {
-            String value = Utils.getValueFromConsole("Please enter the Number which is corresponding to " +
-                               "the Password that is needed be changed [Press Enter to Skip] : ", false);
+        boolean isModified = false;
+        String value;
+        while ((value = Utils.getValueFromConsole(
+                "Please enter the Number which is corresponding to the Password that is needed be changed "
+                        + "[Press Enter to Skip] : ", false)).isEmpty()) {
             if (!value.trim().equals("")) {
                 String selectedPasswordAlias = keyValueList.get(Integer.parseInt(value.trim()) - 1);
                 String newEncryptedValue = getPasswordFromConsole(selectedPasswordAlias, cipher);
                 aliasPasswordMap.put(selectedPasswordAlias, newEncryptedValue);
-            } else {
-                cipherTextProperties.putAll(aliasPasswordMap);
-                Utils.writeToPropertyFile(cipherTextProperties,
-                                          System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
-                break;
+                isModified = true;
             }
+        }
+
+        if (isModified) {
+            cipherTextProperties.putAll(aliasPasswordMap);
+            Utils.writeToPropertyFile(cipherTextProperties,
+                                      System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         }
     }
 }

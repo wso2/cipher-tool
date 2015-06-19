@@ -94,43 +94,17 @@ public class Utils {
      * @param fileName file name
      * @return File file
      */
-    public static String getConfigFile(String fileName) {
+    public static String getConfigFilePath(String fileName) {
 
         String homeFolder = System.getProperty(Constants.HOME_FOLDER);
-        Path filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, fileName);
+        Path filePath = Paths.get(homeFolder, fileName);
         if (!Files.exists(filePath)) {
-            filePath = Paths.get(homeFolder, fileName);
+            filePath = Paths.get(fileName);
             if (!Files.exists(filePath)) {
-                filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.SECURITY_DIR,
-                                     fileName);
-                if (!Files.exists(filePath)) {
-                    filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.AXIS2_DIR,
-                                         fileName);
-                    if (!Files.exists(filePath)) {
-                        filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR,
-                                             Constants.TOMCAT_DIR, fileName);
-                        if (!Files.exists(filePath)) {
-                            filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR,
-                                                 Constants.ETC_DIR, fileName);
-                            if (!Files.exists(filePath)) {
-                                filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR,
-                                                     Constants.DATA_SOURCE_DIRECTORY, fileName);
-                                if (!Files.exists(filePath)) {
-                                    filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.DEPLOYMENT_DIR,
-                                                         Constants.SERVER_DIR, Constants.USERSTORE_DIR, fileName);
-                                    if (!Files.exists(filePath)) {
-                                        filePath = Paths.get(fileName);
-                                        if (!Files.exists(filePath)) {
-                                            throw new CipherToolException("Cannot find file : " + fileName);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                throw new CipherToolException("Cannot find file : " + fileName);
             }
         }
+
 
         return filePath.toAbsolutePath().toString();
     }
