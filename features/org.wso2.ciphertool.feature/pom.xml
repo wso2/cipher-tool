@@ -39,7 +39,7 @@
     <build>
         <resources>
             <resource>
-                <directory>${project.build.directory}/runtime/</directory>
+                <directory>${project.build.directory}/</directory>
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
@@ -57,7 +57,7 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/runtime/lib</outputDirectory>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
                             <excludeTransitive>true</excludeTransitive>
                         </configuration>
                     </execution>
