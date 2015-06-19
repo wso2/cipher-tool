@@ -32,11 +32,24 @@ if [ -z "$JAVA_HOME" ]; then
 fi
 
 # OS specific support.  $var _must_ be set to either true or false.
-cygwin=false
-os400=false
+cygwin=false;
+darwin=false;
+os400=false;
+mingw=false;
 case "`uname`" in
 CYGWIN*) cygwin=true;;
+MINGW*) mingw=true;;
 OS400*) os400=true;;
+Darwin*) darwin=true
+        if [ -z "$JAVA_VERSION" ] ; then
+             JAVA_VERSION="CurrentJDK"
+           else
+             echo "Using Java version: $JAVA_VERSION"
+           fi
+           if [ -z "$JAVA_HOME" ] ; then
+             JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/${JAVA_VERSION}/Home
+           fi
+           ;;
 esac
 
 # resolve links - $0 may be a softlink
@@ -78,6 +91,17 @@ if $os400; then
   export QIBM_MULTI_THREADED
 fi
 
+# For Migwn, ensure paths are in UNIX format before anything is touched
+if $mingw ; then
+  [ -n "$CARBON_HOME" ] &&
+    CARBON_HOME="`(cd "$CARBON_HOME"; pwd)`"
+  [ -n "$JAVA_HOME" ] &&
+    JAVA_HOME="`(cd "$JAVA_HOME"; pwd)`"
+  [ -n "$AXIS2_HOME" ] &&
+    CARBON_HOME="`(cd "$CARBON_HOME"; pwd)`"
+  # TODO classpath?
+fi
+
 # update classpath
 CARBON_CLASSPATH=""
 for f in "$CARBON_HOME"/lib/org.wso2.ciphertool*.jar
@@ -100,4 +124,4 @@ fi
 
 # ----- Execute The Requested Command -----------------------------------------
 
-$JAVA_HOME/bin/java -classpath "$CARBON_CLASSPATH" org.wso2.ciphertool.CipherTool $*
+$JAVA_HOME/bin/java -Dcarbon.home="$CARBON_HOME" -classpath "$CARBON_CLASSPATH" org.wso2.ciphertool.CipherTool $*
