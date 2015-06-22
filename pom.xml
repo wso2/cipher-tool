@@ -18,7 +18,7 @@
 
     <modules>
         <module>components/ciphertool</module>
-        <module>features</module>
+        <module>features/org.wso2.ciphertool.feature</module>
     </modules>
 
     <scm>
@@ -79,6 +79,8 @@
         <carbon.p2.plugin.version>1.5.4</carbon.p2.plugin.version>
         <orbit.version.axiom>1.2.11.wso2v6</orbit.version.axiom>
         <maven.dependency.plugin.version>2.8</maven.dependency.plugin.version>
+        <!-- for maven release process -->
+        <project.scm.id>my-scm-server</project.scm.id>
     </properties>
 
 </project>
