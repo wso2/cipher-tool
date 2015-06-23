@@ -332,7 +332,7 @@ public class CipherTool {
         }
         boolean isModified = false;
         String value;
-        while ((value = Utils.getValueFromConsole(
+        while (!(value = Utils.getValueFromConsole(
                 "Please enter the Number which is corresponding to the Password that is needed be changed "
                         + "[Press Enter to Skip] : ", false)).isEmpty()) {
             if (!value.trim().equals("")) {
