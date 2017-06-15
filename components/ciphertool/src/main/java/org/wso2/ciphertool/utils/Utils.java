@@ -40,7 +40,7 @@ public class Utils {
      */
     public static String getValueFromConsole(String msg, boolean isPassword) {
         Console console = System.console();
-        if (console!= null) {
+        if (console != null) {
             if (isPassword) {
                 char[] password;
                 if ((password = console.readPassword("[%s]", msg)) != null) {
@@ -111,8 +111,9 @@ public class Utils {
 
     /**
      * writees the properties into a file
+     *
      * @param properties properties
-     * @param filePath filepath
+     * @param filePath   filepath
      */
     public static void writeToPropertyFile(Properties properties, String filePath) {
         FileOutputStream fileOutputStream = null;
@@ -135,8 +136,9 @@ public class Utils {
 
     /**
      * retrieve the value for the given xpath from the file
+     *
      * @param element element
-     * @param xPath xpath
+     * @param xPath   xpath
      * @return value from xpath
      */
     public static String getValueFromXPath(Element element, String xPath) {
@@ -239,13 +241,11 @@ public class Utils {
             }
         } else {
 
-            Path currentPath = Paths.get("");
-            homeFolder = currentPath.toAbsolutePath().toString();
             Path standaloneConfigPath =
                     Paths.get(homeFolder, Constants.CONF_DIR, Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE);
             if (!Files.exists(standaloneConfigPath)) {
                 throw new CipherToolException(
-                        "File, " + Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE + " does not exist.");
+                        "File, " + standaloneConfigPath + " does not exist.");
             }
             Properties standaloneConfigProp = Utils.loadProperties(standaloneConfigPath.toAbsolutePath().toString());
             if (standaloneConfigProp.size() <= 0) {
@@ -270,13 +270,12 @@ public class Utils {
         }
 
         System.setProperty(Constants.HOME_FOLDER, homeFolder);
-        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
+        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, getConfigFilePath(keyStoreFile));
         System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY, keyType);
         System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY, keyAlias);
         System.setProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY, secretConfFile);
-        System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, cipherTextPropFile);
-        System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY,
-                           homeFolder + File.separator + cipherTextPropFile);
-        System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, cipherToolPropFile);
+        System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, getConfigFilePath(cipherTextPropFile));
+        System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherTextPropFile));
+        System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherToolPropFile));
     }
 }
