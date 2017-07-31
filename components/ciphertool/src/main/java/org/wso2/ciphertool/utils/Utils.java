@@ -274,7 +274,7 @@ public class Utils {
         System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY, keyType);
         System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY, keyAlias);
         System.setProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY, secretConfFile);
-        System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, getConfigFilePath(cipherTextPropFile));
+        System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, cipherTextPropFile);
         System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherTextPropFile));
         System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherToolPropFile));
     }
