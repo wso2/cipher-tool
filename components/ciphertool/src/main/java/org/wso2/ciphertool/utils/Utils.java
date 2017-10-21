@@ -29,8 +29,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 public class Utils {
@@ -40,7 +38,7 @@ public class Utils {
      */
     public static String getValueFromConsole(String msg, boolean isPassword) {
         Console console = System.console();
-        if (console!= null) {
+        if (console != null) {
             if (isPassword) {
                 char[] password;
                 if ((password = console.readPassword("[%s]", msg)) != null) {
@@ -111,8 +109,9 @@ public class Utils {
 
     /**
      * writees the properties into a file
+     *
      * @param properties properties
-     * @param filePath filepath
+     * @param filePath   filepath
      */
     public static void writeToPropertyFile(Properties properties, String filePath) {
         FileOutputStream fileOutputStream = null;
@@ -135,8 +134,9 @@ public class Utils {
 
     /**
      * retrieve the value for the given xpath from the file
+     *
      * @param element element
-     * @param xPath xpath
+     * @param xPath   xpath
      * @return value from xpath
      */
     public static String getValueFromXPath(Element element, String xPath) {
@@ -201,6 +201,10 @@ public class Utils {
 
         //Verify if this is WSO2 environment
         Path path = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.CARBON_CONFIG_FILE);
+        if (!Files.exists(path)) {
+        	//Try WSO2 EI alternate path
+        	path = Paths.get(homeFolder, Constants.CONF_DIR, Constants.CARBON_CONFIG_FILE);
+        }
 
         if (Files.exists(path)) {
             //WSO2 Environment
@@ -238,7 +242,6 @@ public class Utils {
                         "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             }
         } else {
-
             Path currentPath = Paths.get("");
             homeFolder = currentPath.toAbsolutePath().toString();
             Path standaloneConfigPath =
