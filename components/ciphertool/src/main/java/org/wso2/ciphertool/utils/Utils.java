@@ -217,7 +217,7 @@ public class Utils {
 
                 keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
                                                        Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
-                keyStoreFile = homeFolder + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
+                keyStoreFile = homeFolder + File.separator + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
                 keyType = Utils.getValueFromXPath(document.getDocumentElement(),
                                                   Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
                 keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
