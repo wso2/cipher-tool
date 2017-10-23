@@ -82,7 +82,7 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if (property.equals(Constants.CHANGE)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
+                } else if (property.length() >= 8 && property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
                     System.out.println("This option is not define!");
