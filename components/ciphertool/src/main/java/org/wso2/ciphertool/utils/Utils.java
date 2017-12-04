@@ -29,8 +29,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 public class Utils {
@@ -203,6 +201,12 @@ public class Utils {
 
         //Verify if this is WSO2 environment
         Path path = Paths.get(homeFolder, Constants.REPOSITORY_DIR, Constants.CONF_DIR, Constants.CARBON_CONFIG_FILE);
+        boolean hasConfigInRepository = true;
+        if (!Files.exists(path)) {
+        	//Try WSO2 EI alternate path
+        	path = Paths.get(homeFolder, Constants.CONF_DIR, Constants.CARBON_CONFIG_FILE);
+        	hasConfigInRepository = false;
+        }
 
         if (Files.exists(path)) {
             //WSO2 Environment
@@ -213,21 +217,29 @@ public class Utils {
 
                 keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
                                                        Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
-                keyStoreFile = homeFolder + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
-                System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, keyStoreFile);
+                keyStoreFile = homeFolder + File.separator + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
                 keyType = Utils.getValueFromXPath(document.getDocumentElement(),
                                                   Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
                 keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
                                                    Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
 
-                secretConfFile = homeFolder + File.separator + Constants.REPOSITORY_DIR +
-                                 File.separator + Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR +
-                                 File.separator + Constants.SECRET_PROPERTY_FILE;
-                cipherTextPropFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
-                                     Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TEXT_PROPERTY_FILE;
-                cipherToolPropFile =
-                        homeFolder + File.separator + Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR +
-                        File.separator + Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TOOL_PROPERTY_FILE;
+                if (hasConfigInRepository) {
+	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
+	                                 Constants.SECURITY_DIR + File.separator + Constants.SECRET_PROPERTY_FILE;
+	                cipherTextPropFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
+	                                     Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TEXT_PROPERTY_FILE;
+	                cipherToolPropFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
+	                                     Constants.SECURITY_DIR + File.separator + Constants.CIPHER_TOOL_PROPERTY_FILE;
+                } else {
+	                secretConfFile = Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR + File.separator +
+	                                 Constants.SECRET_PROPERTY_FILE;
+		            cipherTextPropFile = Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR + File.separator +
+		                                 Constants.CIPHER_TEXT_PROPERTY_FILE;
+		            cipherToolPropFile = Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR + File.separator +
+		                                 Constants.CIPHER_TOOL_PROPERTY_FILE;
+                }
+
+                secretConfFile = Paths.get(homeFolder, secretConfFile).toString();
 
             } catch (ParserConfigurationException e) {
                 throw new CipherToolException(
@@ -240,7 +252,6 @@ public class Utils {
                         "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             }
         } else {
-
             Path standaloneConfigPath =
                     Paths.get(homeFolder, Constants.CONF_DIR, Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE);
             if (!Files.exists(standaloneConfigPath)) {
@@ -256,10 +267,15 @@ public class Utils {
             keyStoreFile = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
             keyType = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
             keyAlias = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
-            secretConfPropFile = standaloneConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
-            secretConfFile = homeFolder + File.separator + secretConfPropFile;
+
+            secretConfFile = standaloneConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
             cipherTextPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY);
             cipherToolPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY);
+            
+            if (!Paths.get(secretConfFile).isAbsolute()) {
+                secretConfFile = Paths.get(homeFolder, standaloneConfigProp.getProperty(Constants
+                        .SECRET_PROPERTY_FILE_PROPERTY)).toString();
+            }
         }
 
         if (keyStoreFile.trim().isEmpty()) {
