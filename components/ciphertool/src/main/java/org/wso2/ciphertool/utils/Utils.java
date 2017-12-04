@@ -238,6 +238,9 @@ public class Utils {
 		            cipherToolPropFile = Constants.CONF_DIR + File.separator + Constants.SECURITY_DIR + File.separator +
 		                                 Constants.CIPHER_TOOL_PROPERTY_FILE;
                 }
+
+                secretConfFile = Paths.get(homeFolder, secretConfFile).toString();
+
             } catch (ParserConfigurationException e) {
                 throw new CipherToolException(
                         "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
@@ -264,9 +267,15 @@ public class Utils {
             keyStoreFile = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
             keyType = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
             keyAlias = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
+
             secretConfFile = standaloneConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
             cipherTextPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY);
             cipherToolPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY);
+            
+            if (!Paths.get(secretConfFile).isAbsolute()) {
+                secretConfFile = Paths.get(homeFolder, standaloneConfigProp.getProperty(Constants
+                        .SECRET_PROPERTY_FILE_PROPERTY)).toString();
+            }
         }
 
         if (keyStoreFile.trim().isEmpty()) {
