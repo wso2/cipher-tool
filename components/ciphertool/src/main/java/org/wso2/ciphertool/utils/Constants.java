@@ -40,6 +40,7 @@ public class Constants {
     public static final String CIPHER_TOOL_PROPERTY_FILE_PROPERTY = "cipher.tool.properties.file";
     public static final String CIPHER_STANDALONE_CONFIG_PROPERTY_FILE = "cipher-standalone-config.properties";
     public static final String SECRET_PROPERTY_FILE_PROPERTY = "secret.conf.properties.file";
+    public static final String CIPHER_TRANSFORMATION_SYSTEM_PROPERTY = "org.wso2.CipherTransformation";
 
     public static final class PrimaryKeyStore {
         public static final String PRIMARY_KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
