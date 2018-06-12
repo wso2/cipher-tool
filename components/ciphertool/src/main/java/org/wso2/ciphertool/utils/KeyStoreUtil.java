@@ -54,7 +54,12 @@ public class KeyStoreUtil {
         KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
         try {
             Certificate certs = primaryKeyStore.getCertificate(keyAlias);
-            cipher = Cipher.getInstance("RSA");
+            String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
+            if (cipherTransformation != null) {
+                cipher = Cipher.getInstance(cipherTransformation);
+            } else {
+                cipher = Cipher.getInstance("RSA");
+            }
             cipher.init(Cipher.ENCRYPT_MODE, certs);
         } catch (KeyStoreException e) {
             throw new CipherToolException("Error initializing Cipher ", e);
