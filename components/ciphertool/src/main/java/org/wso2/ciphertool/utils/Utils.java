@@ -33,6 +33,8 @@ import java.util.Properties;
 
 public class Utils {
 
+    private static boolean primaryKeyStore = true;
+
     /**
      * Retrieve value from command-line
      */
@@ -161,9 +163,9 @@ public class Utils {
     public static void writeToSecureConfPropertyFile() {
         Properties properties = new Properties();
 
-        String keyStoreFile = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
-        String keyType = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
-        String aliasName = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
+        String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
+        String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
+        String aliasName = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
 
         properties
                 .setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER, Constants.SecureVault.SECRET_PROVIDER_CLASS);
@@ -216,12 +218,29 @@ public class Utils {
                 Document document = docBuilder.parse(path.toAbsolutePath().toString());
 
                 keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
-                                                       Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_XPATH);
-                keyStoreFile = homeFolder + File.separator + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
-                keyType = Utils.getValueFromXPath(document.getDocumentElement(),
-                                                  Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_XPATH);
-                keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
-                                                   Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_XPATH);
+                            Constants.InternalKeyStore.KEY_LOCATION_XPATH);
+                //Use InternalKeyStore if it exists, else use the Primary keystore
+                if (keyStoreFile != null) {
+                    keyType = Utils.getValueFromXPath(document.getDocumentElement(),
+                            Constants.InternalKeyStore.KEY_TYPE_XPATH);
+                    keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
+                            Constants.InternalKeyStore.KEY_ALIAS_XPATH);
+                    primaryKeyStore = false;
+                } else {
+                    keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
+                            Constants.PrimaryKeyStore.KEY_LOCATION_XPATH);
+                    keyType = Utils.getValueFromXPath(document.getDocumentElement(),
+                            Constants.PrimaryKeyStore.KEY_TYPE_XPATH);
+                    keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
+                            Constants.PrimaryKeyStore.KEY_ALIAS_XPATH);
+                }
+
+                keyStoreFile = homeFolder + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
+                System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
+                String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+
+                System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
+                System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
 
                 if (hasConfigInRepository) {
 	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
@@ -264,9 +283,9 @@ public class Utils {
                         "File, " + Constants.CIPHER_STANDALONE_CONFIG_PROPERTY_FILE + " cannot be empty");
             }
 
-            keyStoreFile = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
-            keyType = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
-            keyAlias = standaloneConfigProp.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
+            keyStoreFile = standaloneConfigProp.getProperty(Constants.KEY_LOCATION_PROPERTY);
+            keyType = standaloneConfigProp.getProperty(Constants.KEY_TYPE_PROPERTY);
+            keyAlias = standaloneConfigProp.getProperty(Constants.KEY_ALIAS_PROPERTY);
 
             secretConfFile = standaloneConfigProp.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY);
             cipherTextPropFile = standaloneConfigProp.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY);
@@ -286,12 +305,19 @@ public class Utils {
         }
 
         System.setProperty(Constants.HOME_FOLDER, homeFolder);
-        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY, getConfigFilePath(keyStoreFile));
-        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY, keyType);
-        System.setProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY, keyAlias);
+        System.setProperty(Constants.KEY_LOCATION_PROPERTY, getConfigFilePath(keyStoreFile));
+        System.setProperty(Constants.KEY_TYPE_PROPERTY, keyType);
+        System.setProperty(Constants.KEY_ALIAS_PROPERTY, keyAlias);
         System.setProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY, secretConfFile);
         System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, cipherTextPropFile);
         System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherTextPropFile));
         System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherToolPropFile));
+    }
+
+    /**
+     * Returns whether it's a primary or an internal keystore
+     */
+    public static boolean isPrimaryKeyStore() {
+        return primaryKeyStore;
     }
 }
