@@ -42,14 +42,20 @@ public class Constants {
     public static final String SECRET_PROPERTY_FILE_PROPERTY = "secret.conf.properties.file";
     public static final String CIPHER_TRANSFORMATION_SYSTEM_PROPERTY = "org.wso2.CipherTransformation";
 
-    public static final class PrimaryKeyStore {
-        public static final String PRIMARY_KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
-        public static final String PRIMARY_KEY_TYPE_XPATH = "//Server/Security/KeyStore/Type";
-        public static final String PRIMARY_KEY_ALIAS_XPATH = "//Server/Security/KeyStore/KeyAlias";
+    public static final String KEY_LOCATION_PROPERTY = "primary.key.location";
+    public static final String KEY_TYPE_PROPERTY = "primary.key.type";
+    public static final String KEY_ALIAS_PROPERTY = "primary.key.alias";
 
-        public static final String PRIMARY_KEY_LOCATION_PROPERTY = "primary.key.location";
-        public static final String PRIMARY_KEY_TYPE_PROPERTY = "primary.key.type";
-        public static final String PRIMARY_KEY_ALIAS_PROPERTY = "primary.key.alias";
+    public static final class PrimaryKeyStore {
+        public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
+        public static final String KEY_TYPE_XPATH = "//Server/Security/KeyStore/Type";
+        public static final String KEY_ALIAS_XPATH = "//Server/Security/KeyStore/KeyAlias";
+    }
+
+    public static final class InternalKeyStore {
+        public static final String KEY_LOCATION_XPATH = "//Server/Security/InternalKeyStore/Location";
+        public static final String KEY_TYPE_XPATH = "//Server/Security/InternalKeyStore/Type";
+        public static final String KEY_ALIAS_XPATH = "//Server/Security/InternalKeyStore/KeyAlias";
     }
 
     public static final class SecureVault {

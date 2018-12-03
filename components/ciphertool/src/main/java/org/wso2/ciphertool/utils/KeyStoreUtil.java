@@ -37,15 +37,16 @@ public class KeyStoreUtil {
      */
     public static Cipher initializeCipher() {
         Cipher cipher;
-        String keyStoreFile = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_LOCATION_PROPERTY);
-        String keyType = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_TYPE_PROPERTY);
-        String keyAlias = System.getProperty(Constants.PrimaryKeyStore.PRIMARY_KEY_ALIAS_PROPERTY);
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
+        String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
+        String keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
         String password;
         if (System.getProperty(Constants.KEYSTORE_PASSWORD) != null &&
             System.getProperty(Constants.KEYSTORE_PASSWORD).length() > 0) {
             password = System.getProperty(Constants.KEYSTORE_PASSWORD);
         } else {
-            password = Utils.getValueFromConsole("Please Enter Primary KeyStore Password of Carbon Server : ", true);
+            password = Utils.getValueFromConsole("Please Enter " + keyStoreName + " KeyStore Password of Carbon Server : ", true);
         }
         if (password == null) {
             throw new CipherToolException("KeyStore password can not be null");
@@ -71,7 +72,7 @@ public class KeyStoreUtil {
             throw new CipherToolException("Error initializing Cipher ", e);
         }
 
-        System.out.println("\nPrimary KeyStore of Carbon Server is initialized Successfully\n");
+        System.out.println("\n" + keyStoreName + " KeyStore of Carbon Server is initialized Successfully\n");
         return cipher;
     }
 
