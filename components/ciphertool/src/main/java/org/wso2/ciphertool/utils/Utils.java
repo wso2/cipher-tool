@@ -235,7 +235,7 @@ public class Utils {
                             Constants.PrimaryKeyStore.KEY_ALIAS_XPATH);
                 }
 
-                keyStoreFile = homeFolder + keyStoreFile.substring((keyStoreFile.indexOf('}')) + 1);
+                keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder);
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
                 String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
 
@@ -320,4 +320,20 @@ public class Utils {
     public static boolean isPrimaryKeyStore() {
         return primaryKeyStore;
     }
+
+    /**
+     * Resolve absolute path of the keystore
+     */
+    public static String resolveKeyStorePath(String keyStorePath, String homeFolder) {
+        // Check whether it's a relative path and is inside {carbon.home}.
+        if (keyStorePath.contains("}")) {
+            keyStorePath = getAbsolutePathWithCarbonHome(keyStorePath, homeFolder);
+        }
+        return keyStorePath;
+    }
+    private static String getAbsolutePathWithCarbonHome(String keyStorePath, String homeFolder) {
+        // Append carbon.home location to the relative path.
+        return homeFolder + keyStorePath.substring((keyStorePath.indexOf('}')) + 1);
+    }
+
 }
