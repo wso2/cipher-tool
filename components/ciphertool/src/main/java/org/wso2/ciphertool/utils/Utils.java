@@ -97,6 +97,9 @@ public class Utils {
     public static String getConfigFilePath(String fileName) {
 
         String homeFolder = System.getProperty(Constants.HOME_FOLDER);
+        if (fileName.startsWith(homeFolder)) {
+            fileName = fileName.substring(homeFolder.length(), fileName.length());
+        }
         Path filePath = Paths.get(homeFolder, fileName);
         if (!Files.exists(filePath)) {
             filePath = Paths.get(fileName);
