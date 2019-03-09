@@ -50,18 +50,43 @@ public class CipherTool {
     public static void main(String[] args) {
 
         initialize(args);
-        Cipher cipher = KeyStoreUtil.initializeCipher();
+        Cipher cipher;
         if (System.getProperty(Constants.CONFIGURE) != null &&
-            System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
+                System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
+            cipher = KeyStoreUtil.initializeCipher(Boolean.FALSE);
             loadXpathValuesAndPasswordDetails();
             secureVaultConfigTokens();
             encryptCipherTextFile(cipher);
             Utils.writeToSecureConfPropertyFile();
         } else if (System.getProperty(Constants.CHANGE) != null &&
-                   System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
+                System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
+            cipher = KeyStoreUtil.initializeCipher(Boolean.FALSE);
             changePassword(cipher);
+        } else if (System.getProperty(Constants.DECRYPT) != null &&
+                System.getProperty(Constants.DECRYPT).equals(Constants.TRUE)) {
+            cipher = KeyStoreUtil.initializeCipher(Boolean.TRUE);
+            decryptedValue(cipher);
         } else {
+            cipher = KeyStoreUtil.initializeCipher(Boolean.FALSE);
             encryptedValue(cipher);
+        }
+    }
+
+    private static void decryptedValue(Cipher cipher) {
+        String encryptedKey = Utils.getValueFromConsole("Enter Encrypted text : ", false);
+        if (!encryptedKey.isEmpty()) {
+            String decryptedText = null;
+            try {
+                byte[] decryptedbyte = cipher.doFinal(DatatypeConverter.parseBase64Binary(encryptedKey));
+                decryptedText = new String(decryptedbyte);
+                System.out.println("\nDecrypted value is : \n" + decryptedText + "\n");
+            } catch (IllegalBlockSizeException e) {
+                throw new CipherToolException("Error : Cannot decrypt the value", e);
+            } catch (BadPaddingException e) {
+                throw new CipherToolException("Error : Cannot decrypt the value", e);
+            }
+        } else {
+            throw new CipherToolException("Error : Invalid input");
         }
     }
 
@@ -82,7 +107,10 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if (property.equals(Constants.CHANGE)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (property.length() >= 8 && property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
+                } else if (property.equals(Constants.DECRYPT)) {
+                    System.setProperty(property, Constants.TRUE);
+                } else if (property.length() >= 8 &&
+                        property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
                     System.out.println("This option is not define!");
@@ -103,16 +131,18 @@ public class CipherTool {
         System.out.println("Options :\n");
 
         System.out.println("\t-Dconfigure\t\t This option would allow user to secure plain text passwords in carbon " +
-                           "configuration files. CipherTool will replace all the passwords listed in " +
-                           "cipher-text.properties file with encrypted values and modify related password elements " +
-                           "in the configuration files with secret alias names. Also secret-conf.properties file is " +
-                           "modified with the default configuration data");
+                "configuration files. CipherTool will replace all the passwords listed in " +
+                "cipher-text.properties file with encrypted values and modify related password elements " +
+                "in the configuration files with secret alias names. Also secret-conf.properties file is " +
+                "modified with the default configuration data");
 
         System.out.println("\t-Dchange\t\t This option would allow user to change the specific password which has " +
-                           "been secured\n");
+                "been secured\n");
+        System.out.println("\t-Ddecrypt\t\t This option would allow user to decrypt and get the value when when the " +
+                "encrypted text provided.");
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
-                           "command line argument. NOTE: Providing the password in command line arguments list is " +
-                           "not recommended.\n");
+                "command line argument. NOTE: Providing the password in command line arguments list is " +
+                "not recommended.\n");
     }
 
     /**
@@ -135,8 +165,8 @@ public class CipherTool {
     /**
      * encrypt the plain text password
      *
-     * @param cipher        init cipher
-     * @param plainTextPwd  plain text password
+     * @param cipher       init cipher
+     * @param plainTextPwd plain text password
      * @return encrypted password
      */
     private static String doEncryption(Cipher cipher, String plainTextPwd) {
@@ -190,7 +220,7 @@ public class CipherTool {
             String fileName = unprocessedXpath.substring(0, endofFilePath);
             if (unprocessedXpath.indexOf(",") > 0) {
                 if ((unprocessedXpath.substring(unprocessedXpath.indexOf(",") + 1)).trim().equals("true") &&
-                    unprocessedXpath.charAt(unprocessedXpath.indexOf(",") - 1) == ']') {
+                        unprocessedXpath.charAt(unprocessedXpath.indexOf(",") - 1) == ']') {
                     encryptParamKey = unprocessedXpath
                             .substring(unprocessedXpath.lastIndexOf('[') + 2, unprocessedXpath.indexOf(",") - 1);
                 }
@@ -236,7 +266,7 @@ public class CipherTool {
                         if (node != null) {
                             if (!encryptParamKey.isEmpty()) {
                                 node.getAttributes().getNamedItem(encryptParamKey)
-                                    .setNodeValue(Constants.SecureVault.PASSWORD);
+                                        .setNodeValue(Constants.SecureVault.PASSWORD);
                             } else {
                                 node.setTextContent(Constants.SecureVault.PASSWORD);
                             }
@@ -246,7 +276,7 @@ public class CipherTool {
                 } else {
                     throw new CipherToolException(
                             "Element for secret alias '" + secretAlias + "' can not be found in " +
-                            fileName + " file or You have entered invalid Xpath value");
+                                    fileName + " file or You have entered invalid Xpath value");
                 }
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
                 Transformer transformer = transformerFactory.newTransformer();
@@ -300,7 +330,8 @@ public class CipherTool {
 
     /**
      * returns the encrypted value entered via the Console for the given Secret Alias
-     * @param key key
+     *
+     * @param key    key
      * @param cipher cipher
      * @return encrypted value
      */
@@ -346,7 +377,7 @@ public class CipherTool {
         if (isModified) {
             cipherTextProperties.putAll(aliasPasswordMap);
             Utils.writeToPropertyFile(cipherTextProperties,
-                                      System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+                    System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         }
     }
 }

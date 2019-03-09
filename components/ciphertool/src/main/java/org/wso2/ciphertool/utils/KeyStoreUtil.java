@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,6 +28,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 
 public class KeyStoreUtil {
 
@@ -35,7 +37,7 @@ public class KeyStoreUtil {
      * Initializes the Cipher
      * @return cipher cipher
      */
-    public static Cipher initializeCipher() {
+    public static Cipher initializeCipher(boolean isDecrypt) {
         Cipher cipher;
         String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
@@ -43,7 +45,7 @@ public class KeyStoreUtil {
         String keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
         String password;
         if (System.getProperty(Constants.KEYSTORE_PASSWORD) != null &&
-            System.getProperty(Constants.KEYSTORE_PASSWORD).length() > 0) {
+                System.getProperty(Constants.KEYSTORE_PASSWORD).length() > 0) {
             password = System.getProperty(Constants.KEYSTORE_PASSWORD);
         } else {
             password = Utils.getValueFromConsole("Please Enter " + keyStoreName + " KeyStore Password of Carbon Server : ", true);
@@ -51,17 +53,21 @@ public class KeyStoreUtil {
         if (password == null) {
             throw new CipherToolException("KeyStore password can not be null");
         }
-
         KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
         try {
-            Certificate certs = primaryKeyStore.getCertificate(keyAlias);
             String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
             if (cipherTransformation != null) {
                 cipher = Cipher.getInstance(cipherTransformation);
             } else {
                 cipher = Cipher.getInstance("RSA");
             }
-            cipher.init(Cipher.ENCRYPT_MODE, certs);
+            if (!isDecrypt) {
+                Certificate certs = primaryKeyStore.getCertificate(keyAlias);
+                cipher.init(Cipher.ENCRYPT_MODE, certs);
+            } else {
+                PrivateKey privateKey = (PrivateKey) primaryKeyStore.getKey(keyAlias, password.toCharArray());
+                cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            }
         } catch (KeyStoreException e) {
             throw new CipherToolException("Error initializing Cipher ", e);
         } catch (NoSuchAlgorithmException e) {
@@ -69,6 +75,8 @@ public class KeyStoreUtil {
         } catch (NoSuchPaddingException e) {
             throw new CipherToolException("Error initializing Cipher ", e);
         } catch (InvalidKeyException e) {
+            throw new CipherToolException("Error initializing Cipher ", e);
+        } catch (UnrecoverableKeyException e) {
             throw new CipherToolException("Error initializing Cipher ", e);
         }
 
