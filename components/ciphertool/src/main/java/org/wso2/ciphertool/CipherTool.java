@@ -125,32 +125,11 @@ public class CipherTool {
         String secondPassword = Utils.getValueFromConsole("Please Enter Value Again : ", true);
 
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
-            String encryptedText = doEncryption(cipher, firstPassword);
+            String encryptedText = Utils.doEncryption(cipher, firstPassword);
             System.out.println("\nEncrypted value is : \n" + encryptedText + "\n");
         } else {
             throw new CipherToolException("Error : Password does not match");
         }
-    }
-
-    /**
-     * encrypt the plain text password
-     *
-     * @param cipher        init cipher
-     * @param plainTextPwd  plain text password
-     * @return encrypted password
-     */
-    private static String doEncryption(Cipher cipher, String plainTextPwd) {
-        String encodedValue;
-        try {
-            byte[] encryptedPassword = cipher.doFinal(plainTextPwd.getBytes(Charset.forName(Constants.UTF8)));
-            encodedValue = DatatypeConverter.printBase64Binary(encryptedPassword);
-        } catch (BadPaddingException e) {
-            throw new CipherToolException("Error encrypting password ", e);
-        } catch (IllegalBlockSizeException e) {
-            throw new CipherToolException("Error encrypting password ", e);
-        }
-        System.out.println("\nEncryption is done Successfully\n");
-        return encodedValue;
     }
 
     /**
@@ -287,7 +266,7 @@ public class CipherTool {
             if (value != null && !value.equals("")) {
                 if (value.contains("[") && value.indexOf("]") > 0) {
                     value = value.substring(value.indexOf("[") + 1, value.indexOf("]"));
-                    value = doEncryption(cipher, value);
+                    value = Utils.doEncryption(cipher, value);
                 }
             } else {
                 value = getPasswordFromConsole(entry.getKey(), cipher);
@@ -308,7 +287,7 @@ public class CipherTool {
         String firstPassword = Utils.getValueFromConsole("Enter Password of Secret Alias - '" + key + "' : ", true);
         String secondPassword = Utils.getValueFromConsole("Please Enter Password Again : ", true);
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
-            String encryptedValue = doEncryption(cipher, firstPassword);
+            String encryptedValue = Utils.doEncryption(cipher, firstPassword);
             aliasPasswordMap.put(key, encryptedValue);
             return encryptedValue;
         } else {
