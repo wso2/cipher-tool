@@ -21,11 +21,16 @@ import org.w3c.dom.Node;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.xml.sax.SAXException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -169,9 +174,11 @@ public class Utils {
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
         String aliasName = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
+        String enable = System.getProperty(Constants.SecureVault.ENABLE_SEC_VAULT, "true");
 
-        properties
-                .setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER, Constants.SecureVault.SECRET_PROVIDER_CLASS);
+        properties.setProperty(Constants.SecureVault.ENABLE_SEC_VAULT, enable);
+        properties.setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER,
+                Constants.SecureVault.SECRET_PROVIDER_CLASS);
         properties.setProperty(Constants.SecureVault.SECRET_REPOSITORIES, "file");
         properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
                                Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
@@ -338,5 +345,26 @@ public class Utils {
         // Append carbon.home location to the relative path.
         return homeFolder + keyStorePath.substring((keyStorePath.indexOf('}')) + 1);
     }
+    /**
+     * encrypt the plain text password
+     *
+     * @param cipher        init cipher
+     * @param plainTextPwd  plain text password
+     * @return encrypted password
+     */
+    public static String doEncryption(Cipher cipher, String plainTextPwd) {
+        String encodedValue;
+        try {
+            byte[] encryptedPassword = cipher.doFinal(plainTextPwd.getBytes(Charset.forName(Constants.UTF8)));
+            encodedValue = DatatypeConverter.printBase64Binary(encryptedPassword);
+        } catch (BadPaddingException e) {
+            throw new CipherToolException("Error encrypting password ", e);
+        } catch (IllegalBlockSizeException e) {
+            throw new CipherToolException("Error encrypting password ", e);
+        }
+        System.out.println("\nEncryption is done Successfully\n");
+        return encodedValue;
+    }
+
 
 }

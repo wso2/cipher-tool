@@ -26,7 +26,6 @@ public class Constants {
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
-
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
@@ -59,6 +58,7 @@ public class Constants {
     }
 
     public static final class SecureVault {
+        public static final String ENABLE_SEC_VAULT = "secVault.enabled";
         public static final String NS_PREFIX = "xmlns:svns";
         public static final String NS = "http://org.wso2.securevault/configuration";
         public static final String ATTRIBUTE = "provider";
