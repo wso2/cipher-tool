@@ -147,11 +147,7 @@ public class CipherTool {
                 Utils.loadProperties(System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         for (Object key : cipherTextProperties.keySet()) {
             String passwordAlias = (String) key;
-            if (configFileXpathMap.containsKey(passwordAlias)) {
-                aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
-            } else {
-                throw new CipherToolException("XPath value for secret alias '" + passwordAlias + "' cannot be found.");
-            }
+            aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
         }
     }
 
