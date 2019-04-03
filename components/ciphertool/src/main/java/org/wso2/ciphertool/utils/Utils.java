@@ -101,7 +101,7 @@ public class Utils {
      */
     public static String getConfigFilePath(String fileName) {
 
-        String homeFolder = System.getProperty(Constants.HOME_FOLDER);
+        String homeFolder = System.getProperty(Constants.HOME_FOLDER).replace('\\','/');
         if (fileName.startsWith(homeFolder)) {
             fileName = fileName.substring(homeFolder.length(), fileName.length());
         }
