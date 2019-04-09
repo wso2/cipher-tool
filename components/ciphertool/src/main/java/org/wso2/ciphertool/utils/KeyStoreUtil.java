@@ -55,11 +55,14 @@ public class KeyStoreUtil {
         KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
         try {
             Certificate certs = primaryKeyStore.getCertificate(keyAlias);
+			System.out.println("Certificate="+certs.toString());
             String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
             if (cipherTransformation != null) {
                 cipher = Cipher.getInstance(cipherTransformation);
+				System.out.println("\nCipher.getInstance("+cipherTransformation+")");
             } else {
                 cipher = Cipher.getInstance("RSA");
+				System.out.println("\nCipher.getInstance(RSA)");
             }
             cipher.init(Cipher.ENCRYPT_MODE, certs);
         } catch (KeyStoreException e) {
