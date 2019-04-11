@@ -101,9 +101,9 @@ public class Utils {
      */
     public static String getConfigFilePath(String fileName) {
 
-        String homeFolder = System.getProperty(Constants.HOME_FOLDER).replace('\\','/');
-        if (fileName.startsWith(homeFolder)) {
-            fileName = fileName.substring(homeFolder.length(), fileName.length());
+        String homeFolder = System.getProperty(Constants.HOME_FOLDER);
+        if (fileName.startsWith(homeFolder) || fileName.startsWith(homeFolder.replace('\\','/'))) {
+            fileName = fileName.substring(homeFolder.length());
         }
         Path filePath = Paths.get(homeFolder, fileName);
         if (!Files.exists(filePath)) {
@@ -112,7 +112,6 @@ public class Utils {
                 throw new CipherToolException("Cannot find file : " + fileName);
             }
         }
-
 
         return filePath.toAbsolutePath().toString();
     }
