@@ -37,7 +37,16 @@
     <packaging>jar</packaging>
     <name>WSO2 Cipher Tool</name>
     <url>http://wso2.org</url>
-
+    <dependencies>
+        <dependency>
+            <groupId>net.consensys.cava</groupId>
+            <artifactId>cava-toml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang.wso2</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>

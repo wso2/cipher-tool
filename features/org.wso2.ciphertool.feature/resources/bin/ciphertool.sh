@@ -104,7 +104,7 @@ fi
 
 # update classpath
 CARBON_CLASSPATH=""
-for f in "$CARBON_HOME"/lib/org.wso2.ciphertool*.jar
+for f in "$CARBON_HOME"/lib/*
 do
   CARBON_CLASSPATH=$CARBON_CLASSPATH:$f
 done
