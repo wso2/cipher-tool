@@ -59,12 +59,9 @@ public class CipherTool {
         Cipher cipher = KeyStoreUtil.initializeCipher();
         if (System.getProperty(Constants.CONFIGURE) != null &&
             System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
-            Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
-            if (secretMap.isEmpty()) {
-                loadXpathValuesAndPasswordDetails();
-                secureVaultConfigTokens();
-                encryptCipherTextFile(cipher);
-            } else {
+            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
+            if (deploymentTomlFile.exists()) {
+                Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
                 for (Map.Entry<String, String> entry : secretMap.entrySet()) {
                     String key = entry.getKey();
                     String value = Utils.getUnEncryptedValue(entry.getValue());
@@ -74,6 +71,10 @@ public class CipherTool {
                     }
                 }
                 updateDeploymentConfigurationWithEncryptedKeys(secretMap);
+            } else {
+                loadXpathValuesAndPasswordDetails();
+                secureVaultConfigTokens();
+                encryptCipherTextFile(cipher);
             }
             Utils.writeToSecureConfPropertyFile();
         } else if (System.getProperty(Constants.CHANGE) != null &&

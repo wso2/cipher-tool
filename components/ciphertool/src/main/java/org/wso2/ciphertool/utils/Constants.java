@@ -35,6 +35,7 @@ public class Constants {
     public static final String CIPHER_TOOL_PROPERTY_FILE = "cipher-tool.properties";
     public static final String SECRET_PROPERTY_FILE = "secret-conf.properties";
     public static final String DEPLOYMENT_TOML_FILE = "deployment.toml";
+    public static final String DEPLOYMENT_CONFIG_FILE_PATH = "deployment.config.file.path";
 
     public static final String CIPHER_TEXT_PROPERTY_FILE_PROPERTY = "cipher.text.properties.file";
     public static final String CIPHER_TOOL_PROPERTY_FILE_PROPERTY = "cipher.tool.properties.file";

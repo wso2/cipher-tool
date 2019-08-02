@@ -358,8 +358,12 @@ public class Utils {
      * @return  deployment file path
      */
     public static String getDeploymentFilePath() {
-        String homeFolder = System.getProperty(Constants.CARBON_HOME);
-        return Paths.get(homeFolder, Constants.CONF_DIR, Constants.DEPLOYMENT_TOML_FILE).toString();
+        String configFilePath = System.getProperty(Constants.DEPLOYMENT_CONFIG_FILE_PATH);
+        if (StringUtils.isEmpty(configFilePath)) {
+            String homeFolder = System.getProperty(Constants.CARBON_HOME);
+            configFilePath = Paths.get(homeFolder, Constants.CONF_DIR, Constants.DEPLOYMENT_TOML_FILE).toString();
+        }
+       return configFilePath;
     }
     /**
      * encrypt the plain text password
@@ -392,7 +396,9 @@ public class Utils {
         Map<String, String> context = new LinkedHashMap<>();
         try {
             TomlParseResult result = Toml.parse(Paths.get(configFilePath));
-            result.errors().forEach(error -> System.out.print(error.toString()));
+            if (result.hasErrors()) {
+                throw new CipherToolException("Error while parsing TOML config file");
+            }
             TomlTable table = result.getTable(Constants.SECRET_PROPERTY_MAP_NAME);
             if (table != null) {
                 table.dottedKeySet().forEach(key -> context.put(key, table.getString(key)));
