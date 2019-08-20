@@ -71,18 +71,30 @@ public class CipherTool {
      * @param args command line arguments
      */
     private static void initialize(String[] args) {
-        String property;
         for (String arg : args) {
             if (arg.equals("-help")) {
                 printHelp();
                 System.exit(0);
             } else if (arg.substring(0, 2).equals("-D")) {
-                property = arg.substring(2);
-                if (property.equals(Constants.CONFIGURE)) {
+                String propertyName;
+                final String property = propertyName = arg.substring(2);
+                String value = null;
+                final int index = property.indexOf("=");
+                if (index != -1) {
+                    propertyName = property.substring(0, index);
+                    value = property.substring(index + 1);
+                }
+                if (propertyName.equals(Constants.CONFIGURE)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (property.equals(Constants.CHANGE)) {
+                } else if (propertyName.equals(Constants.CHANGE)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (property.length() >= 8 && property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
+                } else if (propertyName.equals(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY)) {
+                    if (null != value) {
+                        System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
+                    } else {
+                        System.out.println("The default transformation algorithm of (RSA) will be used");
+                    }
+                } else if (propertyName.length() >= 8 && propertyName.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
                     System.out.println("This option is not define!");
