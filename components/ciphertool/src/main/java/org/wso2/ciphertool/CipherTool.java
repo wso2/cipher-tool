@@ -84,17 +84,17 @@ public class CipherTool {
                     propertyName = property.substring(0, index);
                     value = property.substring(index + 1);
                 }
-                if (propertyName.equals(Constants.CONFIGURE)) {
+                if ((Constants.CONFIGURE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (propertyName.equals(Constants.CHANGE)) {
+                } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (propertyName.equals(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY)) {
+                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
                     if (!Utils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
                         System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
                     }
-                } else if (propertyName.length() >= 8 && propertyName.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
+                } else if (propertyName.length() >= 8 && (Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName.substring(0, 8))) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
                     System.out.println("This option is not defined!");
@@ -111,7 +111,7 @@ public class CipherTool {
     private static void printHelp() {
 
         System.out.println("\n---------Cipher Tool Help---------\n");
-        System.out.println("By default, CipherTool can be used for creating encrypted value for given plaint text\n");
+        System.out.println("By default, CipherTool can be used for creating encrypted value for given plain text using RSA algorithm\n");
         System.out.println("Options :\n");
 
         System.out.println("\t-Dconfigure\t\t This option would allow user to secure plain text passwords in carbon " +
@@ -125,6 +125,8 @@ public class CipherTool {
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
                            "command line argument. NOTE: Providing the password in command line arguments list is " +
                            "not recommended.\n");
+        System.out.println("\t-Dorg.wso2.CipherTransformation=<Transformation algorithm>\t This option would allow user to encrypt plain text " +
+                "using the given transformation algorithm. Ex: -Dorg.wso2.CipherTransformation=RSA/ECB/OAEPwithSHA1andMGF1Padding\n");
     }
 
     /**
