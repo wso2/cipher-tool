@@ -89,15 +89,15 @@ public class CipherTool {
                 } else if (propertyName.equals(Constants.CHANGE)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if (propertyName.equals(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY)) {
-                    if (null != value) {
+                    if (!Utils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
-                        System.out.println("The default transformation algorithm of (RSA) will be used");
+                        System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
                     }
                 } else if (propertyName.length() >= 8 && propertyName.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
-                    System.out.println("This option is not define!");
+                    System.out.println("This option is not defined!");
                     System.exit(-1);
                 }
             }
