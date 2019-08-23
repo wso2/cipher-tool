@@ -89,7 +89,7 @@ public class CipherTool {
                 } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
-                    if (!Utils.isBlank(value)) {
+                    if (!value.isEmpty()) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
                         System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
