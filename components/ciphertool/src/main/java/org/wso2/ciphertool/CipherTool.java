@@ -42,6 +42,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
+
 public class CipherTool {
 
     private static Map<String, String> configFileXpathMap = new HashMap<String, String>();
@@ -89,7 +91,7 @@ public class CipherTool {
                 } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
-                    if (!value.isEmpty()) {
+                    if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
                         System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
