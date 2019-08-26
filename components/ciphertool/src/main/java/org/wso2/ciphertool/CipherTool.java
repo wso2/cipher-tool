@@ -15,6 +15,8 @@
  */
 package org.wso2.ciphertool;
 
+
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -41,6 +43,7 @@ import java.io.*;
 
 import java.nio.charset.Charset;
 import java.util.*;
+
 
 public class CipherTool {
 
@@ -71,21 +74,33 @@ public class CipherTool {
      * @param args command line arguments
      */
     private static void initialize(String[] args) {
-        String property;
         for (String arg : args) {
             if (arg.equals("-help")) {
                 printHelp();
                 System.exit(0);
             } else if (arg.substring(0, 2).equals("-D")) {
-                property = arg.substring(2);
-                if (property.equals(Constants.CONFIGURE)) {
+                String propertyName;
+                final String property = propertyName = arg.substring(2);
+                String value = null;
+                final int index = property.indexOf("=");
+                if (index != -1) {
+                    propertyName = property.substring(0, index);
+                    value = property.substring(index + 1);
+                }
+                if ((Constants.CONFIGURE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (property.equals(Constants.CHANGE)) {
+                } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (property.length() >= 8 && property.substring(0, 8).equals(Constants.CONSOLE_PASSWORD_PARAM)) {
+                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
+                    if (!StringUtils.isBlank(value)) {
+                        System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
+                    } else {
+                        System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
+                    }
+                } else if (propertyName.length() >= 8 && (Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName.substring(0, 8))) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
                 } else {
-                    System.out.println("This option is not define!");
+                    System.out.println("This option is not defined!");
                     System.exit(-1);
                 }
             }
@@ -99,7 +114,7 @@ public class CipherTool {
     private static void printHelp() {
 
         System.out.println("\n---------Cipher Tool Help---------\n");
-        System.out.println("By default, CipherTool can be used for creating encrypted value for given plaint text\n");
+        System.out.println("By default, CipherTool can be used for creating encrypted value for given plain text using RSA algorithm\n");
         System.out.println("Options :\n");
 
         System.out.println("\t-Dconfigure\t\t This option would allow user to secure plain text passwords in carbon " +
@@ -113,6 +128,8 @@ public class CipherTool {
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
                            "command line argument. NOTE: Providing the password in command line arguments list is " +
                            "not recommended.\n");
+        System.out.println("\t-Dorg.wso2.CipherTransformation=<Transformation algorithm>\t This option would allow user to encrypt plain text " +
+                "using the given transformation algorithm. Ex: -Dorg.wso2.CipherTransformation=RSA/ECB/OAEPwithSHA1andMGF1Padding\n");
     }
 
     /**
