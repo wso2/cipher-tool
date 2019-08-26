@@ -15,6 +15,8 @@
  */
 package org.wso2.ciphertool;
 
+
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -42,7 +44,6 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
 
 public class CipherTool {
 
