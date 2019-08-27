@@ -15,6 +15,10 @@
  */
 package org.wso2.ciphertool.utils;
 
+import net.consensys.cava.toml.Toml;
+import net.consensys.cava.toml.TomlParseResult;
+import net.consensys.cava.toml.TomlTable;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,6 +38,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class Utils {
@@ -345,6 +351,20 @@ public class Utils {
         // Append carbon.home location to the relative path.
         return homeFolder + keyStorePath.substring((keyStorePath.indexOf('}')) + 1);
     }
+
+    /**
+     * Get deployment toml file path
+     *
+     * @return  deployment file path
+     */
+    public static String getDeploymentFilePath() {
+        String configFilePath = System.getProperty(Constants.DEPLOYMENT_CONFIG_FILE_PATH);
+        if (StringUtils.isEmpty(configFilePath)) {
+            String homeFolder = System.getProperty(Constants.CARBON_HOME);
+            configFilePath = Paths.get(homeFolder, Constants.CONF_DIR, Constants.DEPLOYMENT_TOML_FILE).toString();
+        }
+       return configFilePath;
+    }
     /**
      * encrypt the plain text password
      *
@@ -364,6 +384,49 @@ public class Utils {
         }
         System.out.println("\nEncryption is done Successfully\n");
         return encodedValue;
+    }
+
+    /**
+     * Read toml file and return list of secrets
+     *
+     * @param configFilePath    file path to deployment toml
+     * @return      Map of secrets
+     */
+    public static Map<String, String> getSecreteFromConfiguration(String configFilePath) {
+        Map<String, String> context = new LinkedHashMap<>();
+        try {
+            TomlParseResult result = Toml.parse(Paths.get(configFilePath));
+            if (result.hasErrors()) {
+                throw new CipherToolException("Error while parsing TOML config file");
+            }
+            TomlTable table = result.getTable(Constants.SECRET_PROPERTY_MAP_NAME);
+            if (table != null) {
+                table.dottedKeySet().forEach(key -> context.put(key, table.getString(key)));
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error parsing file " + configFilePath + e.toString());
+            return context;
+        }
+
+        return context;
+    }
+
+    /**
+     * Read unencrypted value from [secrets] section in deployment toml file
+     *
+     * @param value key to read
+     * @return  unencrypted value
+     */
+    public static String getUnEncryptedValue(String value) {
+
+        String[] unEncryptedRefs = StringUtils.substringsBetween(value, Constants.SECTION_PREFIX,
+                                                                 Constants.SECTION_SUFFIX);
+        if (unEncryptedRefs != null && unEncryptedRefs.length == 1) {
+            return unEncryptedRefs[0];
+        } else {
+            return null;
+        }
     }
 
 }

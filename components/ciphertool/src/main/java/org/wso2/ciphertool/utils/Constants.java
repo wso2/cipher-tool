@@ -34,6 +34,8 @@ public class Constants {
     public static final String CIPHER_TEXT_PROPERTY_FILE = "cipher-text.properties";
     public static final String CIPHER_TOOL_PROPERTY_FILE = "cipher-tool.properties";
     public static final String SECRET_PROPERTY_FILE = "secret-conf.properties";
+    public static final String DEPLOYMENT_TOML_FILE = "deployment.toml";
+    public static final String DEPLOYMENT_CONFIG_FILE_PATH = "deployment.config.file.path";
 
     public static final String CIPHER_TEXT_PROPERTY_FILE_PROPERTY = "cipher.text.properties.file";
     public static final String CIPHER_TOOL_PROPERTY_FILE_PROPERTY = "cipher.tool.properties.file";
@@ -44,6 +46,12 @@ public class Constants {
     public static final String KEY_LOCATION_PROPERTY = "primary.key.location";
     public static final String KEY_TYPE_PROPERTY = "primary.key.type";
     public static final String KEY_ALIAS_PROPERTY = "primary.key.alias";
+
+    public static final String SECRET_PROPERTY_MAP_NAME = "secrets";
+    public static final String SECRETS_SECTION = "[secrets]";
+    public static final String SECTION_PREFIX = "[";
+    public static final String SECTION_SUFFIX = "]";
+    public static final String KEY_VALUE_SEPERATOR = "=";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";

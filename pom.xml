@@ -60,6 +60,21 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons-io.version}</version>
             </dependency>
+            <dependency>
+                <groupId>net.consensys.cava</groupId>
+                <artifactId>cava-toml</artifactId>
+                <version>${version.cava-toml}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang.wso2</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${orbit.version.commons.lang}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -121,6 +136,9 @@
         <bcprov-jdk15on.version>1.52</bcprov-jdk15on.version>
         <commons-cli.version>1.4</commons-cli.version>
         <commons-io.version>2.6</commons-io.version>
+        <version.cava-toml>0.5.0</version.cava-toml>
+        <orbit.version.commons.lang>2.6.0.wso2v1</orbit.version.commons.lang>
+        <commons-lang3.version>3.9</commons-lang3.version>
     </properties>
 
 </project>

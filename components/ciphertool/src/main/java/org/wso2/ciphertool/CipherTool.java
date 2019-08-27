@@ -42,6 +42,9 @@ import javax.xml.xpath.*;
 import java.io.*;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -56,9 +59,23 @@ public class CipherTool {
         Cipher cipher = KeyStoreUtil.initializeCipher();
         if (System.getProperty(Constants.CONFIGURE) != null &&
             System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
-            loadXpathValuesAndPasswordDetails();
-            secureVaultConfigTokens();
-            encryptCipherTextFile(cipher);
+            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
+            if (deploymentTomlFile.exists()) {
+                Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+                for (Map.Entry<String, String> entry : secretMap.entrySet()) {
+                    String key = entry.getKey();
+                    String value = Utils.getUnEncryptedValue(entry.getValue());
+                    if (StringUtils.isNotEmpty(value)) {
+                        String encryptedValue = Utils.doEncryption(cipher, value);
+                        secretMap.replace(key, encryptedValue);
+                    }
+                }
+                updateDeploymentConfigurationWithEncryptedKeys(secretMap);
+            } else {
+                loadXpathValuesAndPasswordDetails();
+                secureVaultConfigTokens();
+                encryptCipherTextFile(cipher);
+            }
             Utils.writeToSecureConfPropertyFile();
         } else if (System.getProperty(Constants.CHANGE) != null &&
                    System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
@@ -339,6 +356,41 @@ public class CipherTool {
             cipherTextProperties.putAll(aliasPasswordMap);
             Utils.writeToPropertyFile(cipherTextProperties,
                                       System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+        }
+    }
+
+    private static void updateDeploymentConfigurationWithEncryptedKeys(Map<String, String> encryptedKeyMap)
+            throws CipherToolException {
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(Utils.getDeploymentFilePath()));
+            try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new
+                 FileOutputStream(Utils.getDeploymentFilePath()), StandardCharsets.UTF_8))) {
+                boolean found = false;
+                for (String line : lines) {
+                    if (found) {
+                        if (line.matches("[.+]")) {
+                            found = false;
+                        } else {
+                            StringTokenizer stringTokenizer = new StringTokenizer(line,
+                                                                                  Constants.KEY_VALUE_SEPERATOR);
+                            if (stringTokenizer.hasMoreTokens()) {
+                                String key = stringTokenizer.nextToken();
+                                String value = encryptedKeyMap.get(key.trim());
+                                line = key.concat(" = \"").concat(value).concat("\"");
+                            }
+                        }
+                    } else {
+                        if (Constants.SECRETS_SECTION.equals(line.trim())) {
+                            found = true;
+                        }
+                    }
+                    bufferedWriter.write(line);
+                    bufferedWriter.newLine();
+                }
+                bufferedWriter.flush();
+            }
+        } catch (IOException e) {
+            throw new CipherToolException("Error while writing encrypted values into deployment file", e);
         }
     }
 }
