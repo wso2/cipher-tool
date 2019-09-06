@@ -124,4 +124,4 @@ fi
 
 # ----- Execute The Requested Command -----------------------------------------
 
-$JAVA_HOME/bin/java -Dcarbon.home="$CARBON_HOME" -classpath "$CARBON_CLASSPATH" org.wso2.ciphertool.CipherTool $*
+$JAVA_HOME/bin/java -Dcarbon.home="$CARBON_HOME" -Dcarbon.config.dir.path="$CARBON_HOME"/repository/conf -classpath "$CARBON_CLASSPATH" org.wso2.ciphertool.CipherTool $*
