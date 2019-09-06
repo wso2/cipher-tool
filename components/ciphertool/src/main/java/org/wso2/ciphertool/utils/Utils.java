@@ -362,8 +362,8 @@ public class Utils {
     public static String getDeploymentFilePath() {
         String configFilePath = System.getProperty(Constants.DEPLOYMENT_CONFIG_FILE_PATH);
         if (StringUtils.isEmpty(configFilePath)) {
-            String homeFolder = System.getProperty(Constants.CARBON_HOME);
-            configFilePath = Paths.get(homeFolder, Constants.CONF_DIR, Constants.DEPLOYMENT_TOML_FILE).toString();
+            configFilePath = Paths.get(System.getProperty(Constants.CARBON_CONFIG_DIR_PATH),
+                             Constants.DEPLOYMENT_TOML_FILE).toString();
         }
        return configFilePath;
     }
