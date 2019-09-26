@@ -23,11 +23,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.wso2.ciphertool.exception.CipherToolException;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.xml.XMLConstants;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -229,8 +232,7 @@ public class Utils {
         if (Files.exists(path)) {
             //WSO2 Environment
             try {
-                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+                DocumentBuilder docBuilder = getSecuredDocumentBuilder(false);
                 Document document = docBuilder.parse(path.toAbsolutePath().toString());
 
                 keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
@@ -429,4 +431,27 @@ public class Utils {
         }
     }
 
+    /**
+     * This method provides a secured document builder which will secure XXE attacks.
+     *
+     * @param setIgnoreComments whether to set setIgnoringComments in DocumentBuilderFactory.
+     * @return DocumentBuilder
+     * @throws ParserConfigurationException
+     */
+    public static DocumentBuilder getSecuredDocumentBuilder(boolean setIgnoreComments) throws
+            ParserConfigurationException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setIgnoringComments(setIgnoreComments);
+        documentBuilderFactory.setNamespaceAware(true);
+        documentBuilderFactory.setExpandEntityReferences(false);
+        documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        documentBuilder.setEntityResolver(new EntityResolver() {
+            @Override
+            public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+                throw new SAXException("Possible XML External Entity (XXE) attack. Skip resolving entity");
+            }
+        });
+        return documentBuilder;
+    }
 }

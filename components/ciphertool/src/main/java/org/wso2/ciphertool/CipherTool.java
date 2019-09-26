@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.xml.XMLConstants;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
 
 public class CipherTool {
 
@@ -223,8 +225,7 @@ public class CipherTool {
         if (xPath != null && !xPath.equals("") && secretAlias != null && !secretAlias.equals("")) {
             String filePath = Utils.getConfigFilePath(fileName);
             try {
-                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+                DocumentBuilder docBuilder = getSecuredDocumentBuilder(false);
                 Document doc = docBuilder.parse(filePath);
                 Node rootNode = doc.getDocumentElement();
                 Node secretNamespaceNode = doc.createAttribute(Constants.SecureVault.NS_PREFIX);
@@ -258,6 +259,7 @@ public class CipherTool {
                             fileName + " file or You have entered invalid Xpath value");
                 }
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                 Transformer transformer = transformerFactory.newTransformer();
                 DOMSource source = new DOMSource(doc);
                 StreamResult result = new StreamResult(new File(filePath));
