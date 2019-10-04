@@ -442,7 +442,7 @@ public class Utils {
             ParserConfigurationException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setIgnoringComments(setIgnoreComments);
-        documentBuilderFactory.setNamespaceAware(true);
+        documentBuilderFactory.setNamespaceAware(false);
         documentBuilderFactory.setExpandEntityReferences(false);
         documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
