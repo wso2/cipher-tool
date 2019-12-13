@@ -10,7 +10,7 @@
 
     <groupId>org.wso2.ciphertool</groupId>
     <artifactId>ciphertool-parent</artifactId>
-    <version>1.1.7-SNAPSHOT</version>
+    <version>1.1.7</version>
     <packaging>pom</packaging>
     <name>WSO2 Cipher Tool - Parent</name>
     <url>http://wso2.org</url>
@@ -25,7 +25,7 @@
         <url>https://github.com/wso2/cipher-tool.git</url>
         <developerConnection>scm:git:https://github.com/wso2/cipher-tool.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/cipher-tool.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.1.7</tag>
     </scm>
 
     <dependencyManagement>
@@ -126,7 +126,7 @@
     </build>
 
     <properties>
-        <wso2.ciphertool.version>1.1.7-SNAPSHOT</wso2.ciphertool.version>
+        <wso2.ciphertool.version>1.1.7</wso2.ciphertool.version>
         <maven.bundle.plugin.version>2.3.5</maven.bundle.plugin.version>
         <carbon.p2.plugin.version>1.5.4</carbon.p2.plugin.version>
         <orbit.version.axiom>1.2.11.wso2v6</orbit.version.axiom>
