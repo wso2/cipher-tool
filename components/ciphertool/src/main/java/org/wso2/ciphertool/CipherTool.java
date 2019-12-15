@@ -357,7 +357,20 @@ public class CipherTool {
         if (isModified) {
             cipherTextProperties.putAll(aliasPasswordMap);
             Utils.writeToPropertyFile(cipherTextProperties,
-                                      System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+                    System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+
+            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
+            if (deploymentTomlFile.exists()) {
+                Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+                for (Map.Entry<String, String> entry : secretMap.entrySet()) {
+                    String encryptedValue = cipherTextProperties.getProperty(entry.getKey());
+                    String key = entry.getKey();
+                    if (StringUtils.isNotEmpty(encryptedValue)) {
+                        secretMap.replace(key, encryptedValue);
+                    }
+                }
+                updateDeploymentConfigurationWithEncryptedKeys(secretMap);
+            }
         }
     }
 
