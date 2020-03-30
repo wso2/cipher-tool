@@ -383,7 +383,7 @@ public class CipherTool {
                 boolean found = false;
                 for (String line : lines) {
                     if (found) {
-                        if (line.matches("[.+]")) {
+                        if (line.matches("\\[.+\\]")) {
                             found = false;
                         } else {
                             StringTokenizer stringTokenizer = new StringTokenizer(line,
