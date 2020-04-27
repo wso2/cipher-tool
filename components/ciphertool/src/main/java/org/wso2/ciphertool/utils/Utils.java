@@ -206,8 +206,10 @@ public class Utils {
         properties.setProperty(Constants.SecureVault.KEYSTORE_KEY_SECRET_PROVIDER,
                                Constants.SecureVault.CARBON_DEFAULT_SECRET_PROVIDER);
         // This property is referred by the FileBaseSecretRepository for decryption.
-        properties.setProperty(Constants.SecureVault.SECRET_FILE_ALGORITHM,
-                System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY));
+        String algorithm = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
+        if (algorithm != null) {
+            properties.setProperty(Constants.SecureVault.SECRET_FILE_ALGORITHM, algorithm);
+        }
 
         writeToPropertyFile(properties, System.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY));
 
