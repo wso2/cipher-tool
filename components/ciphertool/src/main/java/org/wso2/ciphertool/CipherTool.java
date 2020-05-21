@@ -124,7 +124,10 @@ public class CipherTool {
                 }
             }
         }
-        Utils.setSystemProperties();
+        // Avoid setting system properties if initiated by an external program.
+        if (!Boolean.getBoolean(Constants.SET_EXTERNAL_SYSTEM_PROPERTY)) {
+            Utils.setSystemProperties();
+        }
     }
 
     /**
