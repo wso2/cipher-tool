@@ -53,6 +53,8 @@ public class Constants {
     public static final String SECTION_PREFIX = "[";
     public static final String SECTION_SUFFIX = "]";
     public static final String KEY_VALUE_SEPERATOR = "=";
+    // This property will be set to true when external applications need to override the default values
+    public static final String SET_EXTERNAL_SYSTEM_PROPERTY = "external.system.properties";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
