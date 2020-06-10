@@ -48,6 +48,8 @@ import java.util.Properties;
 public class Utils {
 
     private static boolean primaryKeyStore = true;
+    private static final String BACKSLASH = "\\";
+    private static final String FORWARDSLASH = "/";
 
     /**
      * Retrieve value from command-line
@@ -111,6 +113,10 @@ public class Utils {
     public static String getConfigFilePath(String fileName) {
 
         String homeFolder = System.getProperty(Constants.HOME_FOLDER);
+        // Normalize paths for windows.
+        // This should avoid inconsistencies between paths defined with \ and / in windows OS
+        homeFolder = homeFolder.replace(BACKSLASH, FORWARDSLASH);
+        fileName = fileName.replace(BACKSLASH, FORWARDSLASH);
         if (fileName.startsWith(homeFolder)) {
             fileName = fileName.substring(homeFolder.length(), fileName.length());
         }
