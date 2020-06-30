@@ -385,7 +385,8 @@ public class CipherTool {
                  FileOutputStream(Utils.getDeploymentFilePath()), StandardCharsets.UTF_8))) {
                 boolean found = false;
                 for (String line : lines) {
-                    if (found) {
+                    boolean isLineCommented = line.trim().matches("^#.*");
+                    if (found && !isLineCommented) {
                         if (line.matches("\\[.+\\]")) {
                             found = false;
                         } else {
