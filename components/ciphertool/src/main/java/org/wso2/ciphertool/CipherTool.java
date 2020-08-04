@@ -336,6 +336,13 @@ public class CipherTool {
     private static void changePassword(Cipher cipher) {
         Properties cipherTextProperties = Utils.loadProperties(System.getProperty(
                 Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+        File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
+        if (deploymentTomlFile.exists()) {
+            Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+            for (String key: secretMap.keySet()) {
+                cipherTextProperties.put(key,secretMap.get(key));
+            }
+        }
         List<String> keyValueList = new ArrayList<String>();
         int i = 1;
         for (Object key : cipherTextProperties.keySet()) {
@@ -362,7 +369,6 @@ public class CipherTool {
             Utils.writeToPropertyFile(cipherTextProperties,
                     System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
 
-            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
             if (deploymentTomlFile.exists()) {
                 Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
                 for (Map.Entry<String, String> entry : secretMap.entrySet()) {
