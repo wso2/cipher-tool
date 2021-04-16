@@ -433,13 +433,12 @@ public class Utils {
      */
     public static String getUnEncryptedValue(String value) {
 
-        String[] unEncryptedRefs = StringUtils.substringsBetween(value, Constants.SECTION_PREFIX,
-                                                                 Constants.SECTION_SUFFIX);
-        if (unEncryptedRefs != null && unEncryptedRefs.length == 1) {
-            return unEncryptedRefs[0];
-        } else {
+        if (!value.contains(Constants.SECTION_PREFIX) || !value.contains(Constants.SECTION_SUFFIX)) {
             return null;
         }
+        String unEncryptedValue = StringUtils.substring(value, value.indexOf(Constants.SECTION_PREFIX) + 1,
+                value.lastIndexOf(Constants.SECTION_SUFFIX));
+        return StringUtils.isNotEmpty(unEncryptedValue) ? unEncryptedValue : null;
     }
 
     /**
