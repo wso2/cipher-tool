@@ -33,7 +33,7 @@
             <dependency>
                 <groupId>org.wso2.ciphertool</groupId>
                 <artifactId>org.wso2.ciphertool</artifactId>
-                <version>${wso2.ciphertool.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.ws.commons.axiom.wso2</groupId>
