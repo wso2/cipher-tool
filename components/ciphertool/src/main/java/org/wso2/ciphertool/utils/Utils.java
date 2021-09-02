@@ -44,6 +44,11 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
+
+import static org.wso2.ciphertool.utils.Constants.ENV_VAR_PLACEHOLDER_PREFIX;
+import static org.wso2.ciphertool.utils.Constants.PLACEHOLDER_SUFFIX;
+import static org.wso2.ciphertool.utils.Constants.SYS_PROPERTY_PLACEHOLDER_PREFIX;
 
 public class Utils {
 
@@ -414,7 +419,7 @@ public class Utils {
             }
             TomlTable table = result.getTable(Constants.SECRET_PROPERTY_MAP_NAME);
             if (table != null) {
-                table.dottedKeySet().forEach(key -> context.put(key, table.getString(key)));
+                table.dottedKeySet().forEach(key -> context.put(key, resolveVariable(table.getString(key))));
             }
 
         } catch (IOException e) {
@@ -423,6 +428,35 @@ public class Utils {
         }
 
         return context;
+    }
+
+    private static String resolveVariable(String text) {
+        String sysRefs = StringUtils.substringBetween(text, SYS_PROPERTY_PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX);
+        String envRefs = StringUtils.substringBetween(text, ENV_VAR_PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX);
+
+        // Resolves system property references ($sys{ref}) in an individual string.
+        if (sysRefs != null) {
+            String property = System.getProperty(sysRefs);
+            if (StringUtils.isNotEmpty(property)) {
+                text = text.replaceAll(Pattern.quote(SYS_PROPERTY_PLACEHOLDER_PREFIX + sysRefs + PLACEHOLDER_SUFFIX), property);
+            } else {
+                System.err.println("System property is not available for " + sysRefs);
+            }
+            return text;
+        }
+
+        // Resolves environment variable references ($env{ref}) in an individual string.
+        if (envRefs != null) {
+            String resolvedValue = System.getenv(envRefs);
+            if (StringUtils.isNotEmpty(resolvedValue)) {
+                text = text.replaceAll(Pattern.quote(ENV_VAR_PLACEHOLDER_PREFIX + envRefs + PLACEHOLDER_SUFFIX), resolvedValue);
+            } else {
+                System.err.println("Environment variable is not available for " + envRefs);
+            }
+            return text;
+        }
+
+        return text;
     }
 
     /**
