@@ -44,6 +44,7 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static org.wso2.ciphertool.utils.Constants.ENV_VAR_PLACEHOLDER_PREFIX;
@@ -51,6 +52,8 @@ import static org.wso2.ciphertool.utils.Constants.PLACEHOLDER_SUFFIX;
 import static org.wso2.ciphertool.utils.Constants.SYS_PROPERTY_PLACEHOLDER_PREFIX;
 
 public class Utils {
+
+    private static final Logger log = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     private static boolean primaryKeyStore = true;
     private static final String BACKSLASH = "\\";
@@ -440,7 +443,7 @@ public class Utils {
             if (StringUtils.isNotEmpty(property)) {
                 text = text.replaceAll(Pattern.quote(SYS_PROPERTY_PLACEHOLDER_PREFIX + sysRefs + PLACEHOLDER_SUFFIX), property);
             } else {
-                System.err.println("System property is not available for " + sysRefs);
+                log.warning("System property is not available for " + sysRefs);
             }
             return text;
         }
@@ -451,7 +454,7 @@ public class Utils {
             if (StringUtils.isNotEmpty(resolvedValue)) {
                 text = text.replaceAll(Pattern.quote(ENV_VAR_PLACEHOLDER_PREFIX + envRefs + PLACEHOLDER_SUFFIX), resolvedValue);
             } else {
-                System.err.println("Environment variable is not available for " + envRefs);
+                log.warning("Environment variable is not available for " + envRefs);
             }
             return text;
         }
