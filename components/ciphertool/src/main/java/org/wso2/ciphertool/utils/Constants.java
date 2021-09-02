@@ -56,6 +56,10 @@ public class Constants {
     // This property will be set to true when external applications need to override the default values
     public static final String SET_EXTERNAL_SYSTEM_PROPERTY = "external.system.properties";
 
+    public static final String SYS_PROPERTY_PLACEHOLDER_PREFIX = "$sys{"; 
+    public static final String ENV_VAR_PLACEHOLDER_PREFIX = "$env{"; 
+    public static final String PLACEHOLDER_SUFFIX = "}";
+
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
         public static final String KEY_TYPE_XPATH = "//Server/Security/KeyStore/Type";
