@@ -33,7 +33,7 @@
             <dependency>
                 <groupId>org.wso2.ciphertool</groupId>
                 <artifactId>org.wso2.ciphertool</artifactId>
-                <version>${wso2.ciphertool.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.ws.commons.axiom.wso2</groupId>
@@ -82,7 +82,7 @@
         <pluginRepository>
             <id>wso2-nexus</id>
             <name>WSO2 Internal Repository</name>
-            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <url>https://maven.wso2.org/nexus/content/groups/wso2-public/</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>daily</updatePolicy>
