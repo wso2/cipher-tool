@@ -334,15 +334,19 @@ public class CipherTool {
      * use to change an specific password.
      */
     private static void changePassword(Cipher cipher) {
-        Properties cipherTextProperties = Utils.loadProperties(System.getProperty(
-                Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
+        File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
         List<String> keyValueList = new ArrayList<String>();
-        int i = 1;
-        for (Object key : cipherTextProperties.keySet()) {
-            String passwordAlias = (String) key;
-            aliasPasswordMap.put(passwordAlias, cipherTextProperties.getProperty(passwordAlias));
-            keyValueList.add(passwordAlias);
-            System.out.println("[" + i++ + "] " + passwordAlias);
+        if (deploymentTomlFile.exists()) {
+            Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+            int i = 1;
+            for (Map.Entry<String, String> entry : secretMap.entrySet()) {
+                aliasPasswordMap.put(entry.getKey(), entry.getValue());
+                keyValueList.add(entry.getKey());
+                System.out.println("[" + i++ + "] " + entry.getKey());
+            }
+        } else {
+            throw new CipherToolException("deployment.toml file not found on the path " +
+                                          deploymentTomlFile.getAbsolutePath());
         }
         boolean isModified = false;
         String value;
@@ -358,22 +362,7 @@ public class CipherTool {
         }
 
         if (isModified) {
-            cipherTextProperties.putAll(aliasPasswordMap);
-            Utils.writeToPropertyFile(cipherTextProperties,
-                    System.getProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
-
-            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
-            if (deploymentTomlFile.exists()) {
-                Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
-                for (Map.Entry<String, String> entry : secretMap.entrySet()) {
-                    String encryptedValue = cipherTextProperties.getProperty(entry.getKey());
-                    String key = entry.getKey();
-                    if (StringUtils.isNotEmpty(encryptedValue)) {
-                        secretMap.replace(key, encryptedValue);
-                    }
-                }
-                updateDeploymentConfigurationWithEncryptedKeys(secretMap);
-            }
+            updateDeploymentConfigurationWithEncryptedKeys(aliasPasswordMap);
         }
     }
 
