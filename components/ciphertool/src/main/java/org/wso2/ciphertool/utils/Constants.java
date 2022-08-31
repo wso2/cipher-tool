@@ -29,11 +29,13 @@ public class Constants {
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
+    public static final String RESOURCES_DIR = "resources";
 
     public static final String CARBON_CONFIG_FILE = "carbon.xml";
     public static final String CIPHER_TEXT_PROPERTY_FILE = "cipher-text.properties";
     public static final String CIPHER_TOOL_PROPERTY_FILE = "cipher-tool.properties";
     public static final String SECRET_PROPERTY_FILE = "secret-conf.properties";
+    public static final String DEFAULT_JSON_FILE = "default.json";
     public static final String DEPLOYMENT_TOML_FILE = "deployment.toml";
     public static final String DEPLOYMENT_CONFIG_FILE_PATH = "deployment.config.file.path";
     public static final String CARBON_CONFIG_DIR_PATH = "carbon.config.dir.path";
@@ -47,6 +49,18 @@ public class Constants {
     public static final String KEY_LOCATION_PROPERTY = "primary.key.location";
     public static final String KEY_TYPE_PROPERTY = "primary.key.type";
     public static final String KEY_ALIAS_PROPERTY = "primary.key.alias";
+
+    public static final String PRIMARY_KEYSTORE_PROPERTY_MAP_NAME = "keystore.primary";
+    public static final String INTERNAL_KEYSTORE_PROPERTY_MAP_NAME = "keystore.internal";
+    public static final String KEYSTORE_PRIMARY_FILE_NAME = "keystore.primary.file_name";
+    public static final String KEYSTORE_PRIMARY_TYPE = "keystore.primary.type";
+    public static final String KEYSTORE_PRIMARY_ALIAS = "keystore.primary.alias";
+    public static final String KEYSTORE_INTERNAL_TYPE = "keystore.internal.type";
+    public static final String KEYSTORE_INTERNAL_ALIAS = "keystore.internal.alias";
+
+    public static final String KEY_FILE_NAME = "file_name";
+    public static final String KEY_TYPE = "type";
+    public static final String KEY_ALIAS = "alias";
 
     public static final String SECRET_PROPERTY_MAP_NAME = "secrets";
     public static final String SECRETS_SECTION = "[secrets]";
