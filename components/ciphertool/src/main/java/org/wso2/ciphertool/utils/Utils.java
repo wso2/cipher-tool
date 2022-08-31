@@ -15,6 +15,7 @@
  */
 package org.wso2.ciphertool.utils;
 
+import com.google.gson.Gson;
 import net.consensys.cava.toml.Toml;
 import net.consensys.cava.toml.TomlParseResult;
 import net.consensys.cava.toml.TomlTable;
@@ -41,6 +42,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -152,6 +154,42 @@ public class Utils {
     }
 
     /**
+     * Retrieve the value for the given configuration from the following order of files.
+     * 1. deployment.toml
+     * 2. default.json
+     * 3. carbon.xml
+     *
+     * @param config        configuration value
+     * @param key           key of the configuration value in default.json
+     * @param defaultMap    map that contains values from default.json
+     * @param element       element
+     * @param xPath         xpath
+     * @return  configuration value
+     */
+    public static String getValueFromConfigs(String config, String key, Map<String, Object> defaultMap,
+                                             Element element, String xPath) {
+        String value = config;
+        try {
+            // if the value is empty in deployment.toml
+            if (StringUtils.isEmpty(value)) {
+                // read from default.json
+                value = defaultMap.get(key).toString();
+            }
+            // if the value is given as a reference
+            if (value.startsWith("$ref")) {
+                // read from default.json
+                String reference = value.substring(5, value.indexOf('}'));
+                return defaultMap.get(reference).toString();
+            }
+            return value;
+        } catch (NullPointerException e) {
+            // read from carbon.xml if default.json is not available
+            System.err.println("Invalid value " + key + " " + e);
+            return Utils.getValueFromXPath(element, xPath);
+        }
+    }
+
+    /**
      * retrieve the value for the given xpath from the file
      *
      * @param element element
@@ -218,6 +256,12 @@ public class Utils {
         String keyStoreFile, keyType, keyAlias, secretConfPropFile, secretConfFile, cipherTextPropFile,
                 cipherToolPropFile;
 
+        Map<String, String> internalKeystoreMap = Utils.getKeystoreFromConfiguration(getDeploymentFilePath(),
+                Constants.INTERNAL_KEYSTORE_PROPERTY_MAP_NAME);
+        Map<String, String> primaryKeystoreMap = Utils.getKeystoreFromConfiguration(getDeploymentFilePath(),
+                Constants.PRIMARY_KEYSTORE_PROPERTY_MAP_NAME);
+        Map<String, Object> defaultConfigMap = Utils.getJSONConfiguration(getDefaultJSONFilePath());
+
         String homeFolder = System.getProperty(Constants.CARBON_HOME);
 
         //Verify if this is WSO2 environment
@@ -235,25 +279,34 @@ public class Utils {
                 DocumentBuilder docBuilder = getSecuredDocumentBuilder(false);
                 Document document = docBuilder.parse(path.toAbsolutePath().toString());
 
-                keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
-                            Constants.InternalKeyStore.KEY_LOCATION_XPATH);
+                keyStoreFile = internalKeystoreMap.get(Constants.KEY_FILE_NAME);
                 //Use InternalKeyStore if it exists, else use the Primary keystore
-                if (keyStoreFile != null) {
-                    keyType = Utils.getValueFromXPath(document.getDocumentElement(),
-                            Constants.InternalKeyStore.KEY_TYPE_XPATH);
-                    keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
-                            Constants.InternalKeyStore.KEY_ALIAS_XPATH);
+                if (StringUtils.isNotEmpty(keyStoreFile)) {
+                    keyType = Utils.getValueFromConfigs(
+                            internalKeystoreMap.get(Constants.KEY_TYPE),
+                            Constants.KEYSTORE_INTERNAL_TYPE, defaultConfigMap,
+                            document.getDocumentElement(), Constants.InternalKeyStore.KEY_TYPE_XPATH);
+                    keyAlias = Utils.getValueFromConfigs(
+                            internalKeystoreMap.get(Constants.KEY_ALIAS),
+                            Constants.KEYSTORE_INTERNAL_ALIAS, defaultConfigMap,
+                            document.getDocumentElement(), Constants.InternalKeyStore.KEY_ALIAS_XPATH);
                     primaryKeyStore = false;
                 } else {
-                    keyStoreFile = Utils.getValueFromXPath(document.getDocumentElement(),
-                            Constants.PrimaryKeyStore.KEY_LOCATION_XPATH);
-                    keyType = Utils.getValueFromXPath(document.getDocumentElement(),
-                            Constants.PrimaryKeyStore.KEY_TYPE_XPATH);
-                    keyAlias = Utils.getValueFromXPath(document.getDocumentElement(),
-                            Constants.PrimaryKeyStore.KEY_ALIAS_XPATH);
+                    keyStoreFile = Utils.getValueFromConfigs(
+                            primaryKeystoreMap.get(Constants.KEY_FILE_NAME),
+                            Constants.KEYSTORE_PRIMARY_FILE_NAME, defaultConfigMap,
+                            document.getDocumentElement(), Constants.PrimaryKeyStore.KEY_LOCATION_XPATH);
+                    keyType = Utils.getValueFromConfigs(
+                            primaryKeystoreMap.get(Constants.KEY_TYPE),
+                            Constants.KEYSTORE_PRIMARY_TYPE, defaultConfigMap,
+                            document.getDocumentElement(), Constants.PrimaryKeyStore.KEY_TYPE_XPATH);
+                    keyAlias = Utils.getValueFromConfigs(
+                            primaryKeystoreMap.get(Constants.KEY_ALIAS),
+                            Constants.KEYSTORE_PRIMARY_ALIAS, defaultConfigMap,
+                            document.getDocumentElement(), Constants.PrimaryKeyStore.KEY_ALIAS_XPATH);
                 }
 
-                keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder);
+                keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder, defaultConfigMap);
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
                 String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
 
@@ -340,15 +393,31 @@ public class Utils {
     }
 
     /**
-     * Resolve absolute path of the keystore
+     * Resolve path of the keystore.
+     *
+     * @param keyStorePath  path of the keystore
+     * @param homeFolder    path of the IS_HOME
+     * @param defaultMap    map that contains values from default.json
+     * @return  resolved path of the keystore
      */
-    public static String resolveKeyStorePath(String keyStorePath, String homeFolder) {
-        // Check whether it's a relative path and is inside {carbon.home}.
-        if (keyStorePath.contains("}")) {
-            keyStorePath = getAbsolutePathWithCarbonHome(keyStorePath, homeFolder);
+    public static String resolveKeyStorePath(String keyStorePath, String homeFolder, Map<String, Object> defaultMap) {
+        String path = keyStorePath;
+        // if the value is given as a reference
+        if (path.startsWith("$ref")) {
+            String reference = path.substring(5, path.indexOf('}'));
+            path = defaultMap.get(reference).toString();
         }
-        return keyStorePath;
+        // Check whether it's a relative path and is inside {carbon.home}.
+        if (path.contains("}")) {
+            path = getAbsolutePathWithCarbonHome(path, homeFolder);
+            // Check whether it only contains the file name (when retrieved from toml)
+        } else if (!path.startsWith(homeFolder)) {
+            path = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                    Constants.RESOURCES_DIR, Constants.SECURITY_DIR, path).toString();
+        }
+        return path;
     }
+
     private static String getAbsolutePathWithCarbonHome(String keyStorePath, String homeFolder) {
         // Append carbon.home location to the relative path.
         return homeFolder + keyStorePath.substring((keyStorePath.indexOf('}')) + 1);
@@ -367,6 +436,18 @@ public class Utils {
         }
        return configFilePath;
     }
+
+    /**
+     * Get default.json file path.
+     *
+     * @return default JSON file path
+     */
+    public static Path getDefaultJSONFilePath() {
+        String homeFolder = System.getProperty(Constants.CARBON_HOME);
+        return Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
+    }
+
     /**
      * encrypt the plain text password
      *
@@ -412,6 +493,51 @@ public class Utils {
         }
 
         return context;
+    }
+
+    /**
+     * Read from toml file and return keystore data.
+     *
+     * @param configFilePath    file path to deployment toml
+     * @param keystoreName      name of the keystore
+     * @return      Map of keystore data
+     */
+    public static Map<String, String> getKeystoreFromConfiguration(String configFilePath, String keystoreName) {
+        Map<String, String> context = new LinkedHashMap<>();
+        try {
+            TomlParseResult result = Toml.parse(Paths.get(configFilePath));
+            if (result.hasErrors()) {
+                throw new CipherToolException("Error while parsing TOML config file");
+            }
+            TomlTable table = result.getTable(keystoreName);
+            if (table != null) {
+                table.dottedKeySet().forEach(key -> context.put(key, table.getString(key)));
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error parsing file " + configFilePath + e.toString());
+            return context;
+        }
+        return context;
+    }
+
+    /**
+     * Read from default.json.
+     *
+     * @param jsonFilePath  file path to json file
+     * @return  Map of data
+     */
+    public static Map<String, Object> getJSONConfiguration(Path jsonFilePath) {
+        Gson gson = new Gson();
+        Map<String, Object> map = new HashMap<>();
+
+        try (Reader reader = Files.newBufferedReader(jsonFilePath)) {
+            map = gson.fromJson(reader, map.getClass());
+        } catch (IOException e) {
+            System.out.println("Error parsing file " + jsonFilePath  + " " + e);
+            return map;
+        }
+        return map;
     }
 
     /**
