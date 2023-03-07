@@ -259,12 +259,6 @@ public class Utils {
         String keyStoreFile, keyType, keyAlias, secretConfPropFile, secretConfFile, cipherTextPropFile,
                 cipherToolPropFile;
 
-        Map<String, String> internalKeystoreMap = Utils.getKeystoreFromConfiguration(getDeploymentFilePath(),
-                Constants.INTERNAL_KEYSTORE_PROPERTY_MAP_NAME);
-        Map<String, String> primaryKeystoreMap = Utils.getKeystoreFromConfiguration(getDeploymentFilePath(),
-                Constants.PRIMARY_KEYSTORE_PROPERTY_MAP_NAME);
-        Map<String, Object> defaultConfigMap = Utils.getJSONConfiguration(getDefaultJSONFilePath());
-
         String homeFolder = System.getProperty(Constants.CARBON_HOME);
 
         //Verify if this is WSO2 environment
@@ -278,6 +272,11 @@ public class Utils {
 
         if (Files.exists(path)) {
             //WSO2 Environment
+            Map<String, String> internalKeystoreMap = Utils.getKeystoreFromConfiguration(getDeploymentFilePath(),
+                    Constants.INTERNAL_KEYSTORE_PROPERTY_MAP_NAME);
+            Map<String, String> primaryKeystoreMap = Utils.getKeystoreFromConfiguration(getDeploymentFilePath(),
+                    Constants.PRIMARY_KEYSTORE_PROPERTY_MAP_NAME);
+            Map<String, Object> defaultConfigMap = Utils.getJSONConfiguration(getDefaultJSONFilePath());
             try {
                 DocumentBuilder docBuilder = getSecuredDocumentBuilder(false);
                 Document document = docBuilder.parse(path.toAbsolutePath().toString());
@@ -458,8 +457,12 @@ public class Utils {
     public static Path getDefaultJSONFilePath() {
 
         String homeFolder = System.getProperty(Constants.CARBON_HOME);
-        return Paths.get(homeFolder, Constants.REPOSITORY_DIR,
-                Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
+        try {
+            return Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                    Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
+        } catch (InvalidPathException e) {
+            System.out.println("Error while resolving the default.json file path" + e.toString());
+        }
     }
 
     /**
