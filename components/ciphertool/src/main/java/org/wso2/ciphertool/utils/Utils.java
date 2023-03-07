@@ -40,6 +40,7 @@ import javax.xml.xpath.*;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -159,31 +160,33 @@ public class Utils {
      * 2. default.json
      * 3. carbon.xml
      *
-     * @param config        configuration value
-     * @param key           key of the configuration value in default.json
-     * @param defaultMap    map that contains values from default.json
-     * @param element       element
-     * @param xPath         xpath
-     * @return  configuration value
+     * @param config        Configuration value.
+     * @param key           Key of the configuration value in default.json.
+     * @param defaultMap    Map that contains values from default.json.
+     * @param element       Element.
+     * @param xPath         Xpath.
+     * @return Configuration value.
      */
     public static String getValueFromConfigs(String config, String key, Map<String, Object> defaultMap,
                                              Element element, String xPath) {
+
         String value = config;
         try {
-            // if the value is empty in deployment.toml
-            if (StringUtils.isEmpty(value)) {
-                // read from default.json
+            // If the value is empty in deployment.toml, read from default.json
+            if (StringUtils.isBlank(value)) {
                 value = defaultMap.get(key).toString();
             }
-            // if the value is given as a reference
+            // If the value is given as a reference, read from default.json
             if (value.startsWith("$ref")) {
-                // read from default.json
-                String reference = value.substring(5, value.indexOf('}'));
+                // Read the value between the curly braces as the reference
+                // e.g. $ref{<reference>} -> <reference>
+                String reference = value.substring(value.indexOf('{') + 1, value.indexOf('}'));
                 return defaultMap.get(reference).toString();
             }
             return value;
+        // Throw NullPointerException if the value is not available in default.json
         } catch (NullPointerException e) {
-            // read from carbon.xml if default.json is not available
+            // Read from carbon.xml if default.json is not available
             System.err.println("Invalid value " + key + " " + e);
             return Utils.getValueFromXPath(element, xPath);
         }
@@ -281,7 +284,7 @@ public class Utils {
 
                 keyStoreFile = internalKeystoreMap.get(Constants.KEY_FILE_NAME);
                 //Use InternalKeyStore if it exists, else use the Primary keystore
-                if (StringUtils.isNotEmpty(keyStoreFile)) {
+                if (StringUtils.isNotBlank(keyStoreFile)) {
                     keyType = Utils.getValueFromConfigs(
                             internalKeystoreMap.get(Constants.KEY_TYPE),
                             Constants.KEYSTORE_INTERNAL_TYPE, defaultConfigMap,
@@ -401,21 +404,31 @@ public class Utils {
      * @return  resolved path of the keystore
      */
     public static String resolveKeyStorePath(String keyStorePath, String homeFolder, Map<String, Object> defaultMap) {
+
         String path = keyStorePath;
-        // if the value is given as a reference
-        if (path.startsWith("$ref")) {
-            String reference = path.substring(5, path.indexOf('}'));
-            path = defaultMap.get(reference).toString();
+        try {
+            if (StringUtils.isEmpty(path)) {
+                return path;
+            }
+            // If the value is given as a reference, read from default.json
+            if (path.startsWith("$ref")) {
+                // Read the value between the curly braces as the reference
+                // e.g. $ref{<reference>} -> <reference>
+                String reference = path.substring(path.indexOf('{') + 1, path.indexOf('}'));
+                path = defaultMap.get(reference).toString();
+            }
+            // Check whether it's a relative path and is inside {carbon.home}.
+            if (path.contains("}")) {
+                path = getAbsolutePathWithCarbonHome(path, homeFolder);
+                // Check whether it only contains the file name (when retrieved from toml)
+            } else if (!path.startsWith(homeFolder)) {
+                path = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                        Constants.RESOURCES_DIR, Constants.SECURITY_DIR, path).toString();
+            }
+            return path;
+        } catch (InvalidPathException e) {
+            throw new CipherToolException("Error while resolving the keystore path: " + path, e);
         }
-        // Check whether it's a relative path and is inside {carbon.home}.
-        if (path.contains("}")) {
-            path = getAbsolutePathWithCarbonHome(path, homeFolder);
-            // Check whether it only contains the file name (when retrieved from toml)
-        } else if (!path.startsWith(homeFolder)) {
-            path = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
-                    Constants.RESOURCES_DIR, Constants.SECURITY_DIR, path).toString();
-        }
-        return path;
     }
 
     private static String getAbsolutePathWithCarbonHome(String keyStorePath, String homeFolder) {
@@ -440,9 +453,10 @@ public class Utils {
     /**
      * Get default.json file path.
      *
-     * @return default JSON file path
+     * @return Default JSON file path.
      */
     public static Path getDefaultJSONFilePath() {
+
         String homeFolder = System.getProperty(Constants.CARBON_HOME);
         return Paths.get(homeFolder, Constants.REPOSITORY_DIR,
                 Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
@@ -496,13 +510,14 @@ public class Utils {
     }
 
     /**
-     * Read from toml file and return keystore data.
+     * Read toml file and return a map of keystore data.
      *
-     * @param configFilePath    file path to deployment toml
-     * @param keystoreName      name of the keystore
-     * @return      Map of keystore data
+     * @param configFilePath    File path to deployment toml.
+     * @param keystoreName      Name of the keystore.
+     * @return      Map of keystore data.
      */
     public static Map<String, String> getKeystoreFromConfiguration(String configFilePath, String keystoreName) {
+
         Map<String, String> context = new LinkedHashMap<>();
         try {
             TomlParseResult result = Toml.parse(Paths.get(configFilePath));
@@ -513,29 +528,29 @@ public class Utils {
             if (table != null) {
                 table.dottedKeySet().forEach(key -> context.put(key, table.getString(key)));
             }
-
+        // Returns an empty map if the deployment toml is not found.
         } catch (IOException e) {
             System.out.println("Error parsing file " + configFilePath + e.toString());
-            return context;
         }
         return context;
     }
 
     /**
-     * Read from default.json.
+     * Read from default.json file and return a map of data.
      *
-     * @param jsonFilePath  file path to json file
-     * @return  Map of data
+     * @param jsonFilePath  File path to json file.
+     * @return  Map of data.
      */
     public static Map<String, Object> getJSONConfiguration(Path jsonFilePath) {
+
         Gson gson = new Gson();
         Map<String, Object> map = new HashMap<>();
 
         try (Reader reader = Files.newBufferedReader(jsonFilePath)) {
-            map = gson.fromJson(reader, map.getClass());
+            map = gson.fromJson(reader, Map.class);
+        // Returns an empty map if the default json file is not found.
         } catch (IOException e) {
             System.out.println("Error parsing file " + jsonFilePath  + " " + e);
-            return map;
         }
         return map;
     }
