@@ -457,12 +457,14 @@ public class Utils {
     public static Path getDefaultJSONFilePath() {
 
         String homeFolder = System.getProperty(Constants.CARBON_HOME);
+        Path filePath = null;
         try {
-            return Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+            filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
                     Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
         } catch (InvalidPathException e) {
             System.out.println("Error while resolving the default.json file path" + e.toString());
         }
+        return filePath;
     }
 
     /**
@@ -541,7 +543,6 @@ public class Utils {
     /**
      * Read from default.json file and return a map of data.
      *
-     * @param jsonFilePath  File path to json file.
      * @return  Map of data.
      */
     public static Map<String, Object> getJSONConfiguration(Path jsonFilePath) {
@@ -549,11 +550,13 @@ public class Utils {
         Gson gson = new Gson();
         Map<String, Object> map = new HashMap<>();
 
-        try (Reader reader = Files.newBufferedReader(jsonFilePath)) {
-            map = gson.fromJson(reader, Map.class);
-        // Returns an empty map if the default json file is not found.
-        } catch (IOException e) {
-            System.out.println("Error parsing file " + jsonFilePath  + " " + e);
+        if (jsonFilePath != null) {
+            try (Reader reader = Files.newBufferedReader(jsonFilePath)) {
+                map = gson.fromJson(reader, Map.class);
+            // Returns an empty map if the default json file is not found.
+            } catch (IOException e) {
+                System.out.println("Error parsing file " + jsonFilePath  + " " + e);
+            }
         }
         return map;
     }
