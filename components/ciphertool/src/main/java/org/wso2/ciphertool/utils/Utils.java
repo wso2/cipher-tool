@@ -407,7 +407,7 @@ public class Utils {
         String path = keyStorePath;
         try {
             if (StringUtils.isEmpty(path)) {
-                return path;
+                throw new CipherToolException("KeyStore file path cannot be empty");
             }
             // If the value is given as a reference, read from default.json
             if (path.startsWith("$ref")) {
