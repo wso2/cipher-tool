@@ -462,7 +462,7 @@ public class Utils {
             filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
                     Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
         } catch (InvalidPathException e) {
-            System.out.println("Error while resolving the default.json file path" + e.toString());
+            System.err.println("Error while resolving the default.json file path" + e.toString());
         }
         return filePath;
     }
@@ -535,7 +535,7 @@ public class Utils {
             }
         // Returns an empty map if the deployment toml is not found.
         } catch (IOException e) {
-            System.out.println("Error parsing file " + configFilePath + e.toString());
+            System.err.println("Error parsing file " + configFilePath + e.toString());
         }
         return context;
     }
@@ -555,7 +555,7 @@ public class Utils {
                 map = gson.fromJson(reader, Map.class);
             // Returns an empty map if the default json file is not found.
             } catch (IOException e) {
-                System.out.println("Error parsing file " + jsonFilePath  + " " + e);
+                System.err.println("Error parsing file " + jsonFilePath  + " " + e);
             }
         }
         return map;
