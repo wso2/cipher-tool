@@ -172,21 +172,21 @@ public class Utils {
 
         String value = config;
         try {
-            // If the value is empty in deployment.toml, read from default.json
+            // If the value is empty in deployment.toml, read from default.json.
             if (StringUtils.isBlank(value)) {
                 value = defaultMap.get(key).toString();
             }
-            // If the value is given as a reference, read from default.json
+            // If the value is given as a reference, read from default.json.
             if (value.startsWith("$ref")) {
-                // Read the value between the curly braces as the reference
+                // Read the value between the curly braces as the reference.
                 // e.g. $ref{<reference>} -> <reference>
                 String reference = value.substring(value.indexOf('{') + 1, value.indexOf('}'));
                 return defaultMap.get(reference).toString();
             }
             return value;
-        // Throw NullPointerException if the value is not available in default.json
+        // Throw NullPointerException if the value is not available in default.json.
         } catch (NullPointerException e) {
-            // Read from carbon.xml if default.json is not available
+            // Read from carbon.xml if default.json is not available.
             System.err.println("Invalid value " + key + " " + e);
             return Utils.getValueFromXPath(element, xPath);
         }
@@ -406,12 +406,12 @@ public class Utils {
 
         String path = keyStorePath;
         try {
-            if (StringUtils.isEmpty(path)) {
+            if (StringUtils.isBlank(path)) {
                 throw new CipherToolException("KeyStore file path cannot be empty");
             }
-            // If the value is given as a reference, read from default.json
+            // If the value is given as a reference, read from default.json.
             if (path.startsWith("$ref")) {
-                // Read the value between the curly braces as the reference
+                // Read the value between the curly braces as the reference.
                 // e.g. $ref{<reference>} -> <reference>
                 String reference = path.substring(path.indexOf('{') + 1, path.indexOf('}'));
                 path = defaultMap.get(reference).toString();
@@ -419,7 +419,7 @@ public class Utils {
             // Check whether it's a relative path and is inside {carbon.home}.
             if (path.contains("}")) {
                 path = getAbsolutePathWithCarbonHome(path, homeFolder);
-                // Check whether it only contains the file name (when retrieved from toml)
+                // Check whether it only contains the file name (when retrieved from toml).
             } else if (!path.startsWith(homeFolder)) {
                 path = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
                         Constants.RESOURCES_DIR, Constants.SECURITY_DIR, path).toString();
