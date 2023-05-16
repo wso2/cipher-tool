@@ -365,6 +365,13 @@ public class Utils {
         // Check whether it's a relative path and is inside {carbon.home}.
         if (keyStorePath.contains("}")) {
             keyStorePath = getAbsolutePathWithCarbonHome(keyStorePath, homeFolder);
+        } else if (!keyStorePath.startsWith(homeFolder)) {
+            if (keyStorePath.contains(Constants.REPOSITORY_DIR + "/" + Constants.RESOURCES_DIR + "/" + Constants.SECURITY_DIR)) {
+                keyStorePath = Paths.get(homeFolder, keyStorePath).toString();
+            } else {
+                keyStorePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                        Constants.RESOURCES_DIR, Constants.SECURITY_DIR, keyStorePath).toString();
+            }
         }
         return keyStorePath;
     }
