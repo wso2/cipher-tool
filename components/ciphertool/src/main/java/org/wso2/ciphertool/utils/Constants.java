@@ -29,6 +29,7 @@ public class Constants {
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
+    public static final String RESOURCES_DIR = "resources";
 
     public static final String CARBON_CONFIG_FILE = "carbon.xml";
     public static final String CIPHER_TEXT_PROPERTY_FILE = "cipher-text.properties";
