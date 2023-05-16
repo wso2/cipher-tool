@@ -384,7 +384,7 @@ public class CipherTool {
                             if (stringTokenizer.hasMoreTokens()) {
                                 String key = stringTokenizer.nextToken();
                                 String value = encryptedKeyMap.get(key.trim());
-                                line = key.concat(" = \"").concat(value).concat("\"");
+                                line = key.concat("= \"").concat(value).concat("\"");
                             }
                         }
                     } else {
