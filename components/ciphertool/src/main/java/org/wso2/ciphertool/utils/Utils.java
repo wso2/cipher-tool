@@ -421,8 +421,13 @@ public class Utils {
                 path = getAbsolutePathWithCarbonHome(path, homeFolder);
                 // Check whether it only contains the file name (when retrieved from toml).
             } else if (!path.startsWith(homeFolder)) {
-                path = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
-                        Constants.RESOURCES_DIR, Constants.SECURITY_DIR, path).toString();
+                if (path.contains(Constants.REPOSITORY_DIR + "/" + Constants.RESOURCES_DIR + "/" +
+                        Constants.SECURITY_DIR)) {
+                    path = Paths.get(homeFolder, path).toString();
+                } else {
+                    path = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                            Constants.RESOURCES_DIR, Constants.SECURITY_DIR, path).toString();
+                }
             }
             return path;
         } catch (InvalidPathException e) {
