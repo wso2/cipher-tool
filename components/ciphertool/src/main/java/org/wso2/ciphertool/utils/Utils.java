@@ -461,15 +461,19 @@ public class Utils {
      */
     public static Path getDefaultJSONFilePath() {
 
-        String homeFolder = System.getProperty(Constants.CARBON_HOME);
-        Path filePath = null;
-        try {
-            filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
-                    Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
-        } catch (InvalidPathException e) {
-            System.err.println("Error while resolving the default.json file path" + e.toString());
+        String defaultJsonDirPath = System.getProperty(Constants.DEFAULT_JSON_DIR_PATH);
+        if (StringUtils.isEmpty(defaultJsonDirPath)) {
+            String homeFolder = System.getProperty(Constants.CARBON_HOME);
+            Path filePath = null;
+            try {
+                filePath = Paths.get(homeFolder, Constants.REPOSITORY_DIR,
+                        Constants.RESOURCES_DIR, Constants.CONF_DIR, Constants.DEFAULT_JSON_FILE);
+            } catch (InvalidPathException e) {
+                System.err.println("Error while resolving the default.json file path" + e.toString());
+            }
+            return filePath;
         }
-        return filePath;
+        return Paths.get(defaultJsonDirPath, Constants.DEFAULT_JSON_FILE);
     }
 
     /**
