@@ -17,6 +17,8 @@ package org.wso2.ciphertool;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,6 +48,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.PublicKey;
+import java.security.Security;
 import java.util.*;
 
 import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
@@ -58,7 +62,9 @@ public class CipherTool {
     public static void main(String[] args) {
 
         initialize(args);
-        Cipher cipher = KeyStoreUtil.initializeCipher();
+        PublicKey publicKey = KeyStoreUtil.getPublicKey();
+        SecretKeyWithEncapsulation secretKeyWithEncapsulation = Utils.getSecretKeyWithEncapsulation(publicKey);
+        Cipher cipher = Utils.initCipher(secretKeyWithEncapsulation.getEncoded());
         if (System.getProperty(Constants.CONFIGURE) != null &&
             System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
@@ -124,6 +130,7 @@ public class CipherTool {
                 }
             }
         }
+        Security.addProvider(new BouncyCastlePQCProvider());
         Utils.setSystemProperties();
     }
 

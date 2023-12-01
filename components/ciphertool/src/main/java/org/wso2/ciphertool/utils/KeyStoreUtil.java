@@ -26,6 +26,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 
@@ -74,6 +75,31 @@ public class KeyStoreUtil {
 
         System.out.println("\n" + keyStoreName + " KeyStore of Carbon Server is initialized Successfully\n");
         return cipher;
+    }
+
+    public static PublicKey getPublicKey() {
+
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
+        String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
+        String keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
+        String password;
+        if (System.getProperty(Constants.KEYSTORE_PASSWORD) != null &&
+                System.getProperty(Constants.KEYSTORE_PASSWORD).length() > 0) {
+            password = System.getProperty(Constants.KEYSTORE_PASSWORD);
+        } else {
+            password = Utils.getValueFromConsole("Please Enter " + keyStoreName + " KeyStore Password of Carbon Server : ", true);
+        }
+        if (password == null) {
+            throw new CipherToolException("KeyStore password can not be null");
+        }
+
+        KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
+        try {
+            return primaryKeyStore.getCertificate(keyAlias).getPublicKey();
+        } catch (KeyStoreException e) {
+            throw new CipherToolException("Error initializing Cipher ", e);
+        }
     }
 
     private static KeyStore getKeyStore(String location, String storePassword, String storeType) {

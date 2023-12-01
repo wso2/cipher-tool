@@ -20,6 +20,8 @@ import net.consensys.cava.toml.Toml;
 import net.consensys.cava.toml.TomlParseResult;
 import net.consensys.cava.toml.TomlTable;
 import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
+import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -31,6 +33,9 @@ import org.xml.sax.SAXException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.XMLConstants;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
@@ -43,6 +48,9 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -51,6 +59,36 @@ import java.util.Properties;
 public class Utils {
 
     private static boolean primaryKeyStore = true;
+    private static final String KEM_ALGORITHM = "Kyber"; // Key encapsulation mechanism
+    private static final String ENCRYPTION_ALGORITHM = "AES"; // Encryption algorithm
+    private static final String MODE_PADDING = "AES/ECB/PKCS5Padding"; // ECB mode with PKCS5 padding
+
+
+    public static SecretKeyWithEncapsulation getSecretKeyWithEncapsulation(PublicKey publicKey) {
+
+        try {
+            // You will request a key generator
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KEM_ALGORITHM, "BCPQC");
+            // You will set up a KEM Generate Spec with the public key
+            KEMGenerateSpec kemGenerateSpec = new KEMGenerateSpec(publicKey, "Secret");
+            // Now you can initialize the key generator with the kem generate spec and generate out share secret
+            keyGenerator.init(kemGenerateSpec);
+            return (SecretKeyWithEncapsulation)keyGenerator.generateKey();
+        } catch (Exception e) {
+            throw new CipherToolException("Error generating secret key with encapsulation", e);
+        }
+    }
+
+    public static Cipher initCipher(byte[] sharedSecret) {
+        SecretKeySpec secretKey = new SecretKeySpec(sharedSecret, ENCRYPTION_ALGORITHM);
+        try {
+            Cipher cipher = Cipher.getInstance(MODE_PADDING);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            return cipher;
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+            throw new CipherToolException("Error encrypting plain text", e);
+        }
+    }
 
     /**
      * Retrieve value from command-line
