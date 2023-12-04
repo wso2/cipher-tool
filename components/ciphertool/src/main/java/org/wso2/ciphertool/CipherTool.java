@@ -48,6 +48,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
 import java.util.*;
@@ -58,13 +59,37 @@ public class CipherTool {
 
     private static Map<String, String> configFileXpathMap = new HashMap<String, String>();
     private static Map<String, String> aliasPasswordMap = new HashMap<String, String>();
+    private static final String ENCAPSULATION_KEY_FILE = "encapsulation.secret";
 
     public static void main(String[] args) {
 
         initialize(args);
-        PublicKey publicKey = KeyStoreUtil.getPublicKey();
-        SecretKeyWithEncapsulation secretKeyWithEncapsulation = Utils.getSecretKeyWithEncapsulation(publicKey);
-        Cipher cipher = Utils.initCipher(secretKeyWithEncapsulation.getEncoded());
+        byte[] secretKey;
+        // Get the encapulated secret key from file
+        File secretKeyFile = new File(ENCAPSULATION_KEY_FILE);
+        if (!secretKeyFile.exists()) {
+            // Generate a secret key and encapsulate it using public key
+            PublicKey publicKey = KeyStoreUtil.getPublicKey();
+            SecretKeyWithEncapsulation secretKeyWithEncapsulation = Utils.getSecretKeyWithEncapsulation(publicKey);
+            secretKey = secretKeyWithEncapsulation.getEncoded();
+            // Store the encapsulated secret key in a file
+            try (FileOutputStream fileOutputStream = new FileOutputStream(secretKeyFile)) {
+                fileOutputStream.write(secretKeyWithEncapsulation.getEncapsulation());
+            } catch (IOException e) {
+                throw new CipherToolException("Error while writing the secret key file", e);
+            }
+        } else {
+            try {
+                // Read the encapsulated secret key from file
+                byte[] encapsulation = Files.readAllBytes(Paths.get(ENCAPSULATION_KEY_FILE));
+                // Decapsulate the secret key using private key
+                PrivateKey privateKey = KeyStoreUtil.getPrivateKey();
+                secretKey = Utils.getSecretKeyFromEncapsulation(privateKey, encapsulation);
+            } catch (IOException e) {
+                throw new CipherToolException("Error while reading the secret key file", e);
+            }
+        }
+        Cipher cipher = Utils.initCipher(secretKey);
         if (System.getProperty(Constants.CONFIGURE) != null &&
             System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
