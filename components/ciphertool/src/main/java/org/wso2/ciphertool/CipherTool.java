@@ -390,8 +390,10 @@ public class CipherTool {
                                                                                   Constants.KEY_VALUE_SEPERATOR);
                             if (stringTokenizer.hasMoreTokens()) {
                                 String key = stringTokenizer.nextToken();
-                                String value = encryptedKeyMap.get(key.trim());
-                                line = key.concat(" = \"").concat(value).concat("\"");
+                                if (encryptedKeyMap.containsKey(key.trim())) {
+                                    String value = encryptedKeyMap.get(key.trim());
+                                    line = key.concat(" = \"").concat(value).concat("\"");
+                                }
                             }
                         }
                     } else {
