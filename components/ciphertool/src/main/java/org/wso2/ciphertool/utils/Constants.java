@@ -95,6 +95,7 @@ public class Constants {
         public static final String SECRET_REPOSITORIES = "secretRepositories";
         public static final String CARBON_SECRET_PROVIDER = "carbon.secretProvider";
         public static final String SECRET_FILE_PROVIDER = "secretRepositories.file.provider";
+        public static final String SECRET_FILE_ALGORITHM= "secretRepositories.file.algorithm";
         public static final String SECRET_FILE_BASE_PROVIDER_CLASS =
                 "org.wso2.securevault.secret.repository.FileBaseSecretRepositoryProvider";
         public static final String SECRET_FILE_LOCATION = "secretRepositories.file.location";
