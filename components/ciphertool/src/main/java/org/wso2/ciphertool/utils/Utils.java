@@ -246,6 +246,8 @@ public class Utils {
                 .setProperty(Constants.SecureVault.KEYSTORE_KEY_PASSWORD, Constants.SecureVault.IDENTITY_KEY_PASSWORD);
         properties.setProperty(Constants.SecureVault.KEYSTORE_KEY_SECRET_PROVIDER,
                                Constants.SecureVault.CARBON_DEFAULT_SECRET_PROVIDER);
+        properties.setProperty(Constants.SecureVault.SECRET_FILE_ALGORITHM,
+                        System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY));
 
         writeToPropertyFile(properties, System.getProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY));
 
