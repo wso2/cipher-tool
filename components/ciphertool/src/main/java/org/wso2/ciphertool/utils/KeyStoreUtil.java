@@ -76,7 +76,7 @@ public class KeyStoreUtil {
         return cipher;
     }
 
-    private static KeyStore getKeyStore(String location, String storePassword, String storeType) {
+    public static KeyStore getKeyStore(String location, String storePassword, String storeType) {
         BufferedInputStream bufferedInputStream = null;
         try {
             bufferedInputStream = new BufferedInputStream(new FileInputStream(location));

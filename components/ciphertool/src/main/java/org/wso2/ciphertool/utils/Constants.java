@@ -26,6 +26,7 @@ public class Constants {
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
+    public static final String SYMMETRIC = "symmetric";
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
@@ -68,6 +69,7 @@ public class Constants {
     public static final String SECTION_PREFIX = "[";
     public static final String SECTION_SUFFIX = "]";
     public static final String KEY_VALUE_SEPERATOR = "=";
+    public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
@@ -96,6 +98,8 @@ public class Constants {
         public static final String CARBON_SECRET_PROVIDER = "carbon.secretProvider";
         public static final String SECRET_FILE_PROVIDER = "secretRepositories.file.provider";
         public static final String SECRET_FILE_ALGORITHM= "secretRepositories.file.algorithm";
+        public static final String SECRET_FILE_ENCRYPTION_MODE=
+                "secretRepositories.file.encryptionMode";
         public static final String SECRET_FILE_BASE_PROVIDER_CLASS =
                 "org.wso2.securevault.secret.repository.FileBaseSecretRepositoryProvider";
         public static final String SECRET_FILE_LOCATION = "secretRepositories.file.location";
