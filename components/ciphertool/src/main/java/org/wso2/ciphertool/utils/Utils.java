@@ -230,8 +230,15 @@ public class Utils {
         properties.setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER,
                 Constants.SecureVault.SECRET_PROVIDER_CLASS);
         properties.setProperty(Constants.SecureVault.SECRET_REPOSITORIES, "file");
-        properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
-                               Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
+        // Use a separate provider class for symmetric encryption.
+        if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC_ENCRYPTION)))) {
+            properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
+                    Constants.SecureVault.SECRET_SYMMETRIC_FILE_BASE_PROVIDER_CLASS);
+        } else {
+
+            properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
+                    Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
+        }
         properties.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, System.getProperty(
                 Constants.SecureVault.SECRET_FILE_LOCATION));
 
@@ -316,8 +323,12 @@ public class Utils {
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
                 String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
 
-                System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
-                System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
+                if(Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC_ENCRYPTION)))) {
+                    System.out.println("\nEncrypting using " + keyStoreName + " KeyStore's password.");
+                } else {
+                    System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
+                    System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
+                }
 
                 if (hasConfigInRepository) {
 	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +

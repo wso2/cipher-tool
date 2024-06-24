@@ -23,6 +23,7 @@ public class Constants {
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";
     public static final String CHANGE = "change";
+    public static final String SYMMETRIC_ENCRYPTION = "symmetric.encryption";
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
@@ -68,6 +69,7 @@ public class Constants {
     public static final String SECTION_PREFIX = "[";
     public static final String SECTION_SUFFIX = "]";
     public static final String KEY_VALUE_SEPERATOR = "=";
+    public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
@@ -99,6 +101,8 @@ public class Constants {
         public static final String SECRET_FILE_BASE_PROVIDER_CLASS =
                 "org.wso2.securevault.secret.repository.FileBaseSecretRepositoryProvider";
         public static final String SECRET_FILE_LOCATION = "secretRepositories.file.location";
+        public static final String SECRET_SYMMETRIC_FILE_BASE_PROVIDER_CLASS =
+                "org.wso2.securevault.secret.repository.SymmetricFileBaseSecretRepositoryProvider";
         public static final String KEYSTORE_LOCATION = "keystore.identity.location";
         public static final String KEYSTORE_TYPE = "keystore.identity.type";
         public static final String KEYSTORE_ALIAS = "keystore.identity.alias";
