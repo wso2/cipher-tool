@@ -71,7 +71,7 @@ public class SymmetricCipher implements CipherMode {
         if (!isPasswordValid(keyStoreFile, password, keyType)) {
             throw new CipherToolException("Invalid password or corrupted keystore.");
         }
-        this.secretKeySpec = deriveKeyFromPassword(password, StringUtils.EMPTY.getBytes());
+        this.secretKeySpec = deriveKeyFromPassword(password, "AES".getBytes(StandardCharsets.UTF_8));
     }
 
     /**
