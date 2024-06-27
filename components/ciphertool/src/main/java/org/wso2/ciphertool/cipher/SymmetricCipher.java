@@ -31,27 +31,21 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class SymmetricCipher implements CipherMode {
 
-    private static final int KDF_KEY_SIZE = 256;
-    private static final int KDF_ITERATION_COUNT = 65536;
-    private static final String KDF_ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final int GCM_IV_LENGTH = 128;
     private static final int GCM_TAG_LENGTH = 128;
     private final SecretKeySpec secretKeySpec;
@@ -71,7 +65,7 @@ public class SymmetricCipher implements CipherMode {
         if (!isPasswordValid(keyStoreFile, password, keyType)) {
             throw new CipherToolException("Invalid password or corrupted keystore.");
         }
-        this.secretKeySpec = deriveKeyFromPassword(password, "AES".getBytes(StandardCharsets.UTF_8));
+        this.secretKeySpec = deriveKeyFromPassword(password);
     }
 
     /**
@@ -149,13 +143,12 @@ public class SymmetricCipher implements CipherMode {
         }
     }
 
-    private SecretKeySpec deriveKeyFromPassword(String password, byte[] salt) {
+    private SecretKeySpec deriveKeyFromPassword(String password) {
 
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, KDF_ITERATION_COUNT, KDF_KEY_SIZE);
         try {
-            SecretKeyFactory factory = SecretKeyFactory.getInstance(KDF_ALGORITHM);
-            return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            return new SecretKeySpec(messageDigest.digest(password.getBytes(StandardCharsets.UTF_8)), "AES");
+        } catch (NoSuchAlgorithmException e) {
             throw new CipherToolException("Error deriving key from password", e);
         }
     }

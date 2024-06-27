@@ -235,20 +235,16 @@ public class Utils {
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
         String aliasName = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
-        String enable = System.getProperty(Constants.SecureVault.ENABLE_SEC_VAULT, "true");
+        String enable = System.getProperty(Constants.SecureVault.ENABLE_SEC_VAULT, Constants.TRUE);
 
         properties.setProperty(Constants.SecureVault.ENABLE_SEC_VAULT, enable);
         properties.setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER,
                 Constants.SecureVault.SECRET_PROVIDER_CLASS);
         properties.setProperty(Constants.SecureVault.SECRET_REPOSITORIES, "file");
-        // Use a separate provider class for symmetric encryption.
+        properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
+                Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
         if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC_ENCRYPTION)))) {
-            properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
-                    Constants.SecureVault.SECRET_SYMMETRIC_FILE_BASE_PROVIDER_CLASS);
-        } else {
-
-            properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
-                    Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
+            properties.setProperty(Constants.SecureVault.SECRET_FILE_ENCRYPTION_MODE, Constants.SYMMETRIC);
         }
         properties.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, System.getProperty(
                 Constants.SecureVault.SECRET_FILE_LOCATION));
