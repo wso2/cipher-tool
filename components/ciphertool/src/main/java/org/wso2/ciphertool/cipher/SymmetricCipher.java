@@ -36,6 +36,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -45,12 +46,11 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 
 public class SymmetricCipher implements CipherMode {
 
-    private static final int KEY_SIZE = 256;
-    private static final int ITERATION_COUNT = 65536;
+    private static final int KDF_KEY_SIZE = 256;
+    private static final int KDF_ITERATION_COUNT = 65536;
     private static final String KDF_ALGORITHM = "PBKDF2WithHmacSHA256";
     private static final int GCM_IV_LENGTH = 128;
     private static final int GCM_TAG_LENGTH = 128;
@@ -131,9 +131,9 @@ public class SymmetricCipher implements CipherMode {
     private String createSelfContainedCiphertextWithGCMMode(byte[] originalCipher, byte[] iv) {
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("cipherText", DatatypeConverter.printBase64Binary(originalCipher));
-        jsonObject.addProperty("iv", DatatypeConverter.printBase64Binary(iv));
-        return DatatypeConverter.printBase64Binary(new Gson().toJson(jsonObject).getBytes(StandardCharsets.UTF_8));
+        jsonObject.addProperty("cipherText", Base64.getEncoder().encodeToString(originalCipher));
+        jsonObject.addProperty("iv", Base64.getEncoder().encodeToString(iv));
+        return Base64.getEncoder().encodeToString(new Gson().toJson(jsonObject).getBytes());
     }
 
     private boolean isPasswordValid(String keystorePath, String storePassword, String storeType) {
@@ -151,7 +151,7 @@ public class SymmetricCipher implements CipherMode {
 
     private SecretKeySpec deriveKeyFromPassword(String password, byte[] salt) {
 
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATION_COUNT, KEY_SIZE);
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, KDF_ITERATION_COUNT, KDF_KEY_SIZE);
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance(KDF_ALGORITHM);
             return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
