@@ -20,19 +20,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.wso2.ciphertool.cipher.CipherFactory;
+import org.wso2.ciphertool.cipher.CipherMode;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
-import org.wso2.ciphertool.utils.KeyStoreUtil;
 import org.wso2.ciphertool.utils.Utils;
 import org.xml.sax.SAXException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -42,7 +38,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.*;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -58,9 +53,8 @@ public class CipherTool {
     public static void main(String[] args) {
 
         initialize(args);
-        Cipher cipher = KeyStoreUtil.initializeCipher();
-        if (System.getProperty(Constants.CONFIGURE) != null &&
-            System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
+        CipherMode cipherMode = CipherFactory.createCipher();
+        if (Constants.TRUE.equals(System.getProperty(Constants.CONFIGURE))) {
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
             if (deploymentTomlFile.exists()) {
                 Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
@@ -68,7 +62,7 @@ public class CipherTool {
                     String key = entry.getKey();
                     String value = Utils.getUnEncryptedValue(entry.getValue());
                     if (StringUtils.isNotEmpty(value)) {
-                        String encryptedValue = Utils.doEncryption(cipher, value);
+                        String encryptedValue = cipherMode.doEncryption(value);
                         secretMap.replace(key, encryptedValue);
                     }
                 }
@@ -76,14 +70,13 @@ public class CipherTool {
             } else {
                 loadXpathValuesAndPasswordDetails();
                 secureVaultConfigTokens();
-                encryptCipherTextFile(cipher);
+                encryptCipherTextFile(cipherMode);
             }
             Utils.writeToSecureConfPropertyFile();
-        } else if (System.getProperty(Constants.CHANGE) != null &&
-                   System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
-            changePassword(cipher);
+        } else if (Constants.TRUE.equals(System.getProperty(Constants.CHANGE))) {
+            changePassword(cipherMode);
         } else {
-            encryptedValue(cipher);
+            encryptedValue(cipherMode);
         }
     }
 
@@ -110,11 +103,13 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
+                } else if ((Constants.SYMMETRIC).equals(propertyName)) {
+                    System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
-                        System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
+                        System.out.println("Invalid transformation algorithm provided. The default transformation algorithm will be used");
                     }
                 } else if (propertyName.length() >= 8 && (Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName.substring(0, 8))) {
                     System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
@@ -152,16 +147,16 @@ public class CipherTool {
     }
 
     /**
-     * encrypt text retrieved from Console
+     * Encrypt text retrieved from Console.
      *
-     * @param cipher cipher
+     * @param cipherMode Cipher mode (asymmetric or symmetric).
      */
-    private static void encryptedValue(Cipher cipher) {
+    private static void encryptedValue(CipherMode cipherMode) {
         String firstPassword = Utils.getValueFromConsole("Enter Plain Text Value : ", true);
         String secondPassword = Utils.getValueFromConsole("Please Enter Value Again : ", true);
 
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
-            String encryptedText = Utils.doEncryption(cipher, firstPassword);
+            String encryptedText = cipherMode.doEncryption(firstPassword);
             System.out.println("\nEncrypted value is : \n" + encryptedText + "\n");
         } else {
             throw new CipherToolException("Error : Password does not match");
@@ -289,19 +284,19 @@ public class CipherTool {
      * Encrypt plain text password defined in cipher-text.properties file. If not read password from command-line and
      * save to cipher-text.properties
      *
-     * @param cipher cipher
+     * @param cipherMode Cipher mode (asymmetric or symmetric).
      */
-    private static void encryptCipherTextFile(Cipher cipher) {
+    private static void encryptCipherTextFile(CipherMode cipherMode) {
         Properties properties = new Properties();
         for (Map.Entry<String, String> entry : aliasPasswordMap.entrySet()) {
             String value = entry.getValue();
             if (value != null && !value.equals("")) {
                 if (value.contains("[") && value.indexOf("]") > 0) {
                     value = value.substring(value.indexOf("[") + 1, value.indexOf("]"));
-                    value = Utils.doEncryption(cipher, value);
+                    value = cipherMode.doEncryption(value);
                 }
             } else {
-                value = getPasswordFromConsole(entry.getKey(), cipher);
+                value = getPasswordFromConsole(entry.getKey(), cipherMode);
             }
             properties.setProperty(entry.getKey(), value);
         }
@@ -312,14 +307,14 @@ public class CipherTool {
     /**
      * returns the encrypted value entered via the Console for the given Secret Alias
      * @param key key
-     * @param cipher cipher
+     * @param cipherMode Cipher mode (asymmetric or symmetric).
      * @return encrypted value
      */
-    private static String getPasswordFromConsole(String key, Cipher cipher) {
+    private static String getPasswordFromConsole(String key, CipherMode cipherMode) {
         String firstPassword = Utils.getValueFromConsole("Enter Password of Secret Alias - '" + key + "' : ", true);
         String secondPassword = Utils.getValueFromConsole("Please Enter Password Again : ", true);
         if (!firstPassword.isEmpty() && firstPassword.equals(secondPassword)) {
-            String encryptedValue = Utils.doEncryption(cipher, firstPassword);
+            String encryptedValue = cipherMode.doEncryption(firstPassword);
             aliasPasswordMap.put(key, encryptedValue);
             return encryptedValue;
         } else {
@@ -328,9 +323,11 @@ public class CipherTool {
     }
 
     /**
-     * use to change an specific password.
+     * Use to change a specific password.
+     *
+     * @param cipherMode Cipher mode (asymmetric or symmetric).
      */
-    private static void changePassword(Cipher cipher) {
+    private static void changePassword(CipherMode cipherMode) {
         Properties cipherTextProperties = Utils.loadProperties(System.getProperty(
                 Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY));
         List<String> keyValueList = new ArrayList<String>();
@@ -348,7 +345,7 @@ public class CipherTool {
                         + "[Press Enter to Skip] : ", false)).isEmpty()) {
             if (!value.trim().equals("")) {
                 String selectedPasswordAlias = keyValueList.get(Integer.parseInt(value.trim()) - 1);
-                String newEncryptedValue = getPasswordFromConsole(selectedPasswordAlias, cipher);
+                String newEncryptedValue = getPasswordFromConsole(selectedPasswordAlias, cipherMode);
                 aliasPasswordMap.put(selectedPasswordAlias, newEncryptedValue);
                 isModified = true;
             }
