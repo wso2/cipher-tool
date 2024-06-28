@@ -37,9 +37,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.util.Base64;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -86,7 +84,8 @@ public class SymmetricCipher implements CipherMode {
             if (Constants.AES_GCM_NO_PADDING.equals(cipherTransformation)) {
                 byte[] iv = getInitializationVector();
                 cipher.init(Cipher.ENCRYPT_MODE, this.secretKeySpec, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
-                return doEncryptionWithGCMMode(cipher, plainText, iv);
+                String cipherText = Utils.doEncryption(cipher, plainText);
+                return createSelfContainedCiphertextWithGCMMode(cipherText, iv);
             } else {
                 cipher.init(Cipher.ENCRYPT_MODE, this.secretKeySpec);
                 return Utils.doEncryption(cipher, plainText);
@@ -94,22 +93,6 @@ public class SymmetricCipher implements CipherMode {
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
                  InvalidAlgorithmParameterException e) {
             throw new CipherToolException("Error initializing Cipher ", e);
-        }
-    }
-
-    private String doEncryptionWithGCMMode(Cipher cipher, String plaintext, byte[] iv) {
-
-        byte[] cipherText;
-        try {
-            if (StringUtils.isBlank(plaintext)) {
-                cipherText = StringUtils.EMPTY.getBytes();
-            } else {
-                cipherText = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
-            }
-            return createSelfContainedCiphertextWithGCMMode(cipherText, iv);
-        } catch (IllegalBlockSizeException | BadPaddingException e) {
-            String errorMessage = String.format("Error encrypting with algorithm: '%s'.", Constants.AES_GCM_NO_PADDING);
-            throw new CipherToolException(errorMessage, e);
         }
     }
 
@@ -122,10 +105,10 @@ public class SymmetricCipher implements CipherMode {
     }
 
 
-    private String createSelfContainedCiphertextWithGCMMode(byte[] originalCipher, byte[] iv) {
+    private String createSelfContainedCiphertextWithGCMMode(String originalCipher, byte[] iv) {
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("cipherText", Base64.getEncoder().encodeToString(originalCipher));
+        jsonObject.addProperty("cipherText", originalCipher);
         jsonObject.addProperty("iv", Base64.getEncoder().encodeToString(iv));
         return Base64.getEncoder().encodeToString(new Gson().toJson(jsonObject).getBytes());
     }

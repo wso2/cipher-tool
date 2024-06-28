@@ -243,7 +243,7 @@ public class Utils {
         properties.setProperty(Constants.SecureVault.SECRET_REPOSITORIES, "file");
         properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
                 Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
-        if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC_ENCRYPTION)))) {
+        if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
             properties.setProperty(Constants.SecureVault.SECRET_FILE_ENCRYPTION_MODE, Constants.SYMMETRIC);
         }
         properties.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, System.getProperty(
@@ -330,10 +330,10 @@ public class Utils {
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
                 String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
 
-                if(Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC_ENCRYPTION)))) {
-                    System.out.println("\nEncrypting using " + keyStoreName + " KeyStore's password.");
+                if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
+                    System.out.println("\nSymmetric encryption using " + keyStoreName + " KeyStore's password.");
                 } else {
-                    System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
+                    System.out.println("\nAsymmetric encryption using " + keyStoreName + " KeyStore.");
                     System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
                 }
 

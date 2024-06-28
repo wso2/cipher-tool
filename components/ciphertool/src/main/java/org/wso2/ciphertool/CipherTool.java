@@ -103,7 +103,7 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if ((Constants.SYMMETRIC_ENCRYPTION).equals(propertyName)) {
+                } else if ((Constants.SYMMETRIC).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
                     if (!StringUtils.isBlank(value)) {

@@ -23,7 +23,6 @@ public class Constants {
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";
     public static final String CHANGE = "change";
-    public static final String SYMMETRIC_ENCRYPTION = "symmetric.encryption";
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";

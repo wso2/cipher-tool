@@ -26,7 +26,7 @@ public class CipherFactory {
     }
 
     public static CipherMode createCipher() {
-        if (Constants.TRUE.equals(System.getProperty(Constants.SYMMETRIC_ENCRYPTION))) {
+        if (Constants.TRUE.equals(System.getProperty(Constants.SYMMETRIC))) {
             return new SymmetricCipher();
         } else {
             return new AsymmetricCipher();
