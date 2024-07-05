@@ -70,6 +70,7 @@ public class Constants {
     public static final String SECTION_SUFFIX = "]";
     public static final String KEY_VALUE_SEPERATOR = "=";
     public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
+    public static final String RSA = "RSA";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";

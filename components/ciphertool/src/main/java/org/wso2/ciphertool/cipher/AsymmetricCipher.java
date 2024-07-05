@@ -17,21 +17,41 @@
  */
 package org.wso2.ciphertool.cipher;
 
-import org.wso2.ciphertool.utils.KeyStoreUtil;
+import org.apache.commons.lang.StringUtils;
+import org.wso2.ciphertool.exception.CipherToolException;
+import org.wso2.ciphertool.utils.Constants;
 import org.wso2.ciphertool.utils.Utils;
 
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+
 import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * Provides methods for encryption and decryption using asymmetric key algorithms.
  */
 public class AsymmetricCipher implements CipherMode {
 
+    private final String keyAlias;
+    private final KeyStore keyStore;
     private final Cipher cipher;
 
-    public AsymmetricCipher() {
+    public AsymmetricCipher(KeyStore keyStore) {
 
-        this.cipher = KeyStoreUtil.initializeCipher();
+        this.keyStore = keyStore;
+        this.keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
+        String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
+        String algorithm = StringUtils.isNotBlank(cipherTransformation)
+                ? cipherTransformation : Constants.RSA;
+        try {
+            this.cipher = Cipher.getInstance(algorithm);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+            throw new CipherToolException("Error initializing Keystore ", e);
+        }
     }
 
     /**
@@ -43,6 +63,12 @@ public class AsymmetricCipher implements CipherMode {
     @Override
     public String doEncryption(String plainText) {
 
+        try {
+            Certificate certs = this.keyStore.getCertificate(this.keyAlias);
+            cipher.init(Cipher.ENCRYPT_MODE, certs);
+        } catch (KeyStoreException | InvalidKeyException e) {
+            throw new CipherToolException("Error initializing Cipher ", e);
+        }
         return Utils.doEncryption(cipher, plainText);
     }
 }

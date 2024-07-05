@@ -24,6 +24,7 @@ import org.wso2.ciphertool.cipher.CipherFactory;
 import org.wso2.ciphertool.cipher.CipherMode;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
+import org.wso2.ciphertool.utils.KeyStoreUtil;
 import org.wso2.ciphertool.utils.Utils;
 import org.xml.sax.SAXException;
 
@@ -41,6 +42,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.util.*;
 
 import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
@@ -53,7 +55,8 @@ public class CipherTool {
     public static void main(String[] args) {
 
         initialize(args);
-        CipherMode cipherMode = CipherFactory.createCipher();
+        KeyStore keyStore = KeyStoreUtil.getKeyStore();
+        CipherMode cipherMode = CipherFactory.createCipher(keyStore);
         if (Constants.TRUE.equals(System.getProperty(Constants.CONFIGURE))) {
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
             if (deploymentTomlFile.exists()) {

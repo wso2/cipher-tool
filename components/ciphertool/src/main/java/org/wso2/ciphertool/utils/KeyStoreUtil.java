@@ -15,6 +15,7 @@
  */
 package org.wso2.ciphertool.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.wso2.ciphertool.exception.CipherToolException;
 
 import javax.crypto.Cipher;
@@ -30,6 +31,42 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 
 public class KeyStoreUtil {
+
+    /**
+     * Retrieves the password for the keystore.
+     *
+     * @return The keystore password.
+     */
+    public static String getKeystorePassword() {
+
+        String password;
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        if (StringUtils.isNotEmpty(System.getProperty(Constants.KEYSTORE_PASSWORD))) {
+            password = System.getProperty(Constants.KEYSTORE_PASSWORD);
+        } else {
+            password = Utils.getValueFromConsole("Please Enter " + keyStoreName + " KeyStore Password of Carbon Server : ", true);
+            System.setProperty(Constants.KEYSTORE_PASSWORD, password);
+        }
+        if (password == null) {
+            throw new CipherToolException("KeyStore password can not be null");
+        }
+        return password;
+    }
+
+    /**
+     * Retrieves the keystore for the Carbon Server.
+     *
+     * @return The keystore.
+     */
+    public static KeyStore getKeyStore() {
+
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
+        String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
+        String password = getKeystorePassword();
+        System.out.println("\n" + keyStoreName + " KeyStore of Carbon Server is initialized Successfully\n");
+        return getKeyStore(keyStoreFile, password, keyType);
+    }
 
     /**
      * Initializes the Cipher
