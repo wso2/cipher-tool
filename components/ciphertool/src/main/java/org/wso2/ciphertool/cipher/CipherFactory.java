@@ -19,12 +19,21 @@ package org.wso2.ciphertool.cipher;
 
 import org.wso2.ciphertool.utils.Constants;
 
+/**
+ * The CipherFactory class provides a static method to create either a SymmetricCipher or AsymmetricCipher
+ * based on a system property.
+ */
 public class CipherFactory {
 
     private CipherFactory() {
 
     }
 
+    /**
+     * Creates an instance of CipherMode based on the {@code Constants.SYMMETRIC} system property.
+     *
+     * @return An instance of {@code CipherMode}, either {@code SymmetricCipher} or {@code AsymmetricCipher}.
+     */
     public static CipherMode createCipher() {
         if (Constants.TRUE.equals(System.getProperty(Constants.SYMMETRIC))) {
             return new SymmetricCipher();

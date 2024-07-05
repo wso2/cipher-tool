@@ -139,6 +139,8 @@ public class CipherTool {
 
         System.out.println("\t-Dchange\t\t This option would allow user to change the specific password which has " +
                            "been secured\n");
+        System.out.println("\t-Dsymmetric\t\t This option would allow user to use symmetric encryption for creating " +
+                "encrypted values.\n");
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
                            "command line argument. NOTE: Providing the password in command line arguments list is " +
                            "not recommended.\n");

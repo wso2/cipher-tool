@@ -39,6 +39,9 @@ import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 
+/**
+ * Provides methods for encryption and decryption using symmetric key algorithms.
+ */
 public class SymmetricCipher implements CipherMode {
 
     private static final int GCM_IV_LENGTH = 128;

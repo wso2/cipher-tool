@@ -22,6 +22,9 @@ import org.wso2.ciphertool.utils.Utils;
 
 import javax.crypto.Cipher;
 
+/**
+ * Provides methods for encryption and decryption using asymmetric key algorithms.
+ */
 public class AsymmetricCipher implements CipherMode {
 
     private final Cipher cipher;
