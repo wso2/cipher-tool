@@ -20,13 +20,18 @@ package org.wso2.ciphertool.cipher;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
+import org.wso2.ciphertool.utils.KeyStoreUtil;
 import org.wso2.ciphertool.utils.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -40,10 +45,10 @@ public class AsymmetricCipher implements CipherMode {
     private final KeyStore keyStore;
     private final Cipher cipher;
 
-    public AsymmetricCipher(KeyStore keyStore) {
+    public AsymmetricCipher(KeyStore keyStore, String keyAlias) {
 
         this.keyStore = keyStore;
-        this.keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
+        this.keyAlias = keyAlias;
         String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
         String algorithm = StringUtils.isNotBlank(cipherTransformation)
                 ? cipherTransformation : Constants.RSA;
@@ -52,6 +57,11 @@ public class AsymmetricCipher implements CipherMode {
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new CipherToolException("Error initializing Keystore ", e);
         }
+    }
+
+    public AsymmetricCipher(KeyStore keyStore) {
+
+        this(keyStore, System.getProperty(Constants.KEY_ALIAS_PROPERTY));
     }
 
     /**
@@ -71,4 +81,19 @@ public class AsymmetricCipher implements CipherMode {
         }
         return Utils.doEncryption(cipher, plainText);
     }
+
+    @Override
+    public String doDecryption(String cipherText) {
+
+        try {
+            Key privateKey = this.keyStore.getKey(this.keyAlias, KeyStoreUtil.getKeystorePassword().toCharArray());
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        }  catch (KeyStoreException | NoSuchAlgorithmException e) {
+            throw new CipherToolException("Error initializing Cipher ", e);
+        } catch (UnrecoverableKeyException | InvalidKeyException e) {
+            throw new CipherToolException("Error retrieving key associated with alias : " + keyAlias, e);
+        }
+        return Utils.doDecryption(cipher, Base64.getDecoder().decode(cipherText.getBytes(StandardCharsets.UTF_8)));
+    }
+
 }

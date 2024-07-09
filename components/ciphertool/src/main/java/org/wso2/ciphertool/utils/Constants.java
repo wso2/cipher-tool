@@ -23,10 +23,12 @@ public class Constants {
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";
     public static final String CHANGE = "change";
+    public static final String ROTATE = "rotate";
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
     public static final String SYMMETRIC = "symmetric";
+    public static final String OLD_KEY_ALIAS = "old.alias";
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";

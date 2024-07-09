@@ -26,4 +26,12 @@ public interface CipherMode {
      * @return Encrypted password.
      */
     String doEncryption(String plainText);
+
+    /**
+     * Decrypt cipher text into plain text using decryption.
+     *
+     * @param cipherText Cipher text.
+     * @return Decrypted plain text.
+     */
+    String doDecryption(String cipherText);
 }

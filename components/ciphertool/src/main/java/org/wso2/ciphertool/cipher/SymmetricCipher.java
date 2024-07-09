@@ -18,13 +18,17 @@
 package org.wso2.ciphertool.cipher;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
 import org.wso2.ciphertool.utils.KeyStoreUtil;
 import org.wso2.ciphertool.utils.Utils;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -50,13 +54,12 @@ public class SymmetricCipher implements CipherMode {
     private final Cipher cipher;
     private final String algorithm;
 
-    public SymmetricCipher(KeyStore keyStore) {
+    public SymmetricCipher(KeyStore keyStore, String keyAlias) {
 
         String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
         this.algorithm = StringUtils.isNotBlank(cipherTransformation)
                 ? cipherTransformation : Constants.AES_GCM_NO_PADDING;
         String password = KeyStoreUtil.getKeystorePassword();
-        String keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
         try {
             this.secretKey = keyStore.getKey(keyAlias, password.toCharArray());
             if (this.secretKey == null) {
@@ -68,6 +71,11 @@ public class SymmetricCipher implements CipherMode {
         } catch (UnrecoverableKeyException e) {
             throw new CipherToolException("Error retrieving key associated with alias : " + keyAlias, e);
         }
+    }
+
+    public SymmetricCipher(KeyStore keyStore) {
+
+        this(keyStore, System.getProperty(Constants.KEY_ALIAS_PROPERTY));
     }
 
     /**
@@ -92,6 +100,52 @@ public class SymmetricCipher implements CipherMode {
         } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
             throw new CipherToolException("Error initializing Cipher ", e);
         }
+    }
+
+    /**
+     * Decrypt encrypted text using encryption.
+     *
+     * @param cipherText Encrypted password.
+     * @return Plain text password.
+     */
+    @Override
+    public String doDecryption(String cipherText) {
+
+        try {
+            byte[] encryptedText;
+            if (Constants.AES_GCM_NO_PADDING.equals(this.algorithm)) {
+                JsonObject jsonObject = getJsonObject(cipherText);
+                encryptedText = getValueFromJson(jsonObject, "cipherText");
+                byte[] iv = getValueFromJson(jsonObject, "iv");
+                cipher.init(Cipher.DECRYPT_MODE, this.secretKey, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, this.secretKey);
+                encryptedText = Base64.getDecoder().decode(cipherText.getBytes(StandardCharsets.UTF_8));
+            }
+            return Utils.doDecryption(cipher, encryptedText);
+        } catch (InvalidKeyException |
+                 InvalidAlgorithmParameterException e) {
+            throw new CipherToolException("Error initializing Cipher ", e);
+        }
+    }
+
+    private JsonObject getJsonObject(String encryptedText) {
+
+        try {
+            String jsonString = new String(Base64.getDecoder().decode(encryptedText));
+            return JsonParser.parseString(jsonString).getAsJsonObject();
+        } catch (JsonSyntaxException e) {
+            throw new CipherToolException("Invalid encrypted text: JSON parsing failed.");
+        }
+    }
+
+    private byte[] getValueFromJson(JsonObject jsonObject, String value) {
+
+        JsonElement jsonElement = jsonObject.get(value);
+        if (jsonElement == null) {
+            throw new CipherToolException(String.format("Value \"%s\" not found in JSON", value));
+        }
+        return Base64.getDecoder().decode(jsonElement.getAsString().getBytes(StandardCharsets.UTF_8));
     }
 
     private byte[] getInitializationVector() {

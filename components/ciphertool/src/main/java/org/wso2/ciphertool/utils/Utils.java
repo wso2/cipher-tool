@@ -520,6 +520,25 @@ public class Utils {
     }
 
     /**
+     * Decrypt the cipher text password.
+     *
+     * @param cipher        Initialized cipher object.
+     * @param cipherTextPwd Encrypted password.
+     * @return Plain text password.
+     */
+    public static String doDecryption(Cipher cipher, byte[] cipherTextPwd) {
+        String encodedValue;
+        try {
+            byte[] encryptedPassword = cipher.doFinal(cipherTextPwd);
+            encodedValue = new String(encryptedPassword);
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            throw new CipherToolException("Error decrypting password ", e);
+        }
+        System.out.println("\nDecryption is done Successfully\n");
+        return encodedValue;
+    }
+
+    /**
      * Read toml file and return list of secrets
      *
      * @param configFilePath    file path to deployment toml
@@ -606,6 +625,20 @@ public class Utils {
         String unEncryptedValue = StringUtils.substring(value, value.indexOf(Constants.SECTION_PREFIX) + 1,
                 value.lastIndexOf(Constants.SECTION_SUFFIX));
         return StringUtils.isNotEmpty(unEncryptedValue) ? unEncryptedValue : null;
+    }
+
+    /**
+     * Read encrypted value from [secrets] section in deployment toml file.
+     *
+     * @param value Key to read.
+     * @return      Unencrypted value.
+     */
+    public static String getEncryptedValue(String value) {
+
+        if (value.contains(Constants.SECTION_PREFIX) && value.contains(Constants.SECTION_SUFFIX)) {
+            return null;
+        }
+        return StringUtils.isNotEmpty(value) ? value : null;
     }
 
     /**

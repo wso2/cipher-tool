@@ -20,14 +20,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.wso2.ciphertool.cipher.AsymmetricCipher;
 import org.wso2.ciphertool.cipher.CipherFactory;
 import org.wso2.ciphertool.cipher.CipherMode;
+import org.wso2.ciphertool.cipher.SymmetricCipher;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
 import org.wso2.ciphertool.utils.KeyStoreUtil;
 import org.wso2.ciphertool.utils.Utils;
 import org.xml.sax.SAXException;
 
+import javax.crypto.SecretKey;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -42,7 +45,11 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.Key;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.*;
 
 import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
@@ -74,6 +81,30 @@ public class CipherTool {
                 loadXpathValuesAndPasswordDetails();
                 secureVaultConfigTokens();
                 encryptCipherTextFile(cipherMode);
+            }
+            Utils.writeToSecureConfPropertyFile();
+        } else if (Constants.TRUE.equals(System.getProperty(Constants.ROTATE))) {
+            String oldAlias  = System.getProperty(Constants.OLD_KEY_ALIAS);
+            CipherMode oldCipherMode = isSymmetricKey(oldAlias, keyStore)
+                    ? new SymmetricCipher(keyStore, oldAlias) : new AsymmetricCipher(keyStore, oldAlias);
+            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
+            if (deploymentTomlFile.exists()) {
+                Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+                for (Map.Entry<String, String> entry : secretMap.entrySet()) {
+                    String key = entry.getKey();
+                    String oldEncryptedValue = Utils.getEncryptedValue(entry.getValue());
+                    if (StringUtils.isNotEmpty(oldEncryptedValue)) {
+                        String value = oldCipherMode.doDecryption(oldEncryptedValue);
+                        secretMap.replace(key, value);
+                        if (StringUtils.isNotEmpty(value)) {
+                            String encryptedValue = cipherMode.doEncryption(value);
+                            secretMap.replace(key, encryptedValue);
+                        }
+                    }
+                }
+                updateDeploymentConfigurationWithEncryptedKeys(secretMap);
+            } else {
+                throw new CipherToolException(deploymentTomlFile + " file not found.");
             }
             Utils.writeToSecureConfPropertyFile();
         } else if (Constants.TRUE.equals(System.getProperty(Constants.CHANGE))) {
@@ -108,6 +139,12 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.SYMMETRIC).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
+                } else if (Constants.ROTATE.equals(propertyName)) {
+                    System.setProperty(property, Constants.TRUE);
+                } else if (Constants.OLD_KEY_ALIAS.equals(propertyName)) {
+                    if (!StringUtils.isBlank(value)) {
+                        System.setProperty(Constants.OLD_KEY_ALIAS, value);
+                    }
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
@@ -142,8 +179,11 @@ public class CipherTool {
 
         System.out.println("\t-Dchange\t\t This option would allow user to change the specific password which has " +
                            "been secured\n");
-        System.out.println("\t-Dsymmetric\t\t This option would allow user to use symmetric encryption for creating " +
-                "encrypted values.\n");
+        System.out.println("\t-Drotate\t\t This option is used to rotate the existing encrypted values to a new secret " +
+                "alias. Requires providing the old alias.\n");
+        System.out.println("\t-Dsymmetric\t\t This option allows the user to use symmetric encryption for creating " +
+                "encrypted values. It can be used with -Dconfigure, -Dchange, or -Drotate.\n");
+        System.out.println("\t-Dold.alias=<Old secret alias>\t This specifies the old alias used in rotate mode.");
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
                            "command line argument. NOTE: Providing the password in command line arguments list is " +
                            "not recommended.\n");
@@ -409,5 +449,20 @@ public class CipherTool {
         } catch (IOException e) {
             throw new CipherToolException("Error while writing encrypted values into deployment file", e);
         }
+    }
+
+    private static boolean isSymmetricKey(String keyAlias, KeyStore keystore) {
+        try {
+            Key key = keystore.getKey(keyAlias, KeyStoreUtil.getKeystorePassword().toCharArray());
+            // Check if the key is symmetric or not.
+            if (key instanceof SecretKey) {
+                return true;
+            }
+        } catch (KeyStoreException | NoSuchAlgorithmException e) {
+            throw new CipherToolException("Error initializing Cipher ", e);
+        } catch (UnrecoverableKeyException e) {
+            throw new CipherToolException("Error retrieving key associated with alias : " + keyAlias, e);
+        }
+        return false;
     }
 }
