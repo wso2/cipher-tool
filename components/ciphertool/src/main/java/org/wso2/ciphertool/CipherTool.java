@@ -39,9 +39,17 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.*;
-import java.io.*;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -50,7 +58,12 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.StringTokenizer;
 
 import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
 
@@ -85,6 +98,9 @@ public class CipherTool {
             Utils.writeToSecureConfPropertyFile();
         } else if (Constants.TRUE.equals(System.getProperty(Constants.ROTATE))) {
             String oldAlias  = System.getProperty(Constants.OLD_KEY_ALIAS);
+            if (StringUtils.isBlank(oldAlias)) {
+                throw new CipherToolException(Constants.OLD_KEY_ALIAS + " parameter is required for key rotate mode.");
+            }
             CipherMode oldCipherMode = isSymmetricKey(oldAlias, keyStore)
                     ? new SymmetricCipher(keyStore, oldAlias) : new AsymmetricCipher(keyStore, oldAlias);
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
