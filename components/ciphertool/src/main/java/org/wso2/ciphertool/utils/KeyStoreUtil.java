@@ -40,7 +40,7 @@ public class KeyStoreUtil {
     public static String getKeystorePassword() {
 
         String password;
-        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
         if (StringUtils.isNotEmpty(System.getProperty(Constants.KEYSTORE_PASSWORD))) {
             password = System.getProperty(Constants.KEYSTORE_PASSWORD);
         } else {
@@ -60,7 +60,7 @@ public class KeyStoreUtil {
      */
     public static KeyStore getKeyStore() {
 
-        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
         String password = getKeystorePassword();
@@ -74,7 +74,7 @@ public class KeyStoreUtil {
      */
     public static Cipher initializeCipher() {
         Cipher cipher;
-        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
         String keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);

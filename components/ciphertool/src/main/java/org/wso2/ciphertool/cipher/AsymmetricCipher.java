@@ -44,8 +44,6 @@ public class AsymmetricCipher implements CipherMode {
     private final String keyAlias;
     private final KeyStore keyStore;
     private final Cipher cipher;
-    private static final String CIPHER_INIT_ERROR_MESSAGE = "Error initializing Cipher.";
-    private static final String GET_KEY_ERROR_MESSAGE = "Error retrieving key associated with alias : ";
 
     public AsymmetricCipher(KeyStore keyStore, String keyAlias) {
 
@@ -57,7 +55,7 @@ public class AsymmetricCipher implements CipherMode {
         try {
             this.cipher = Cipher.getInstance(algorithm);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+            throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
         }
     }
 
@@ -79,13 +77,19 @@ public class AsymmetricCipher implements CipherMode {
             Certificate certs = this.keyStore.getCertificate(this.keyAlias);
             cipher.init(Cipher.ENCRYPT_MODE, certs);
         } catch (KeyStoreException e) {
-            throw new CipherToolException(GET_KEY_ERROR_MESSAGE + this.keyAlias, e);
+            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(this.keyAlias), e);
         } catch (InvalidKeyException e) {
             throw new CipherToolException("The provided public cert is invalid.", e);
         }
         return Utils.doEncryption(cipher, plainText);
     }
 
+    /**
+     * Decrypt encrypted text using encryption.
+     *
+     * @param cipherText Encrypted password.
+     * @return Plain text password.
+     */
     @Override
     public String doDecryption(String cipherText) {
 
@@ -95,7 +99,7 @@ public class AsymmetricCipher implements CipherMode {
         }  catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new CipherToolException("The provided private key is invalid.", e);
         } catch (KeyStoreException | UnrecoverableKeyException e) {
-            throw new CipherToolException(GET_KEY_ERROR_MESSAGE + this.keyAlias, e);
+            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(this.keyAlias), e);
         }
         return Utils.doDecryption(cipher, Base64.getDecoder().decode(cipherText.getBytes(StandardCharsets.UTF_8)));
     }

@@ -73,6 +73,10 @@ public class Constants {
     public static final String KEY_VALUE_SEPERATOR = "=";
     public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
     public static final String RSA = "RSA";
+    public static final String CIPHERTEXT = "cipherText";
+    public static final String IV = "iv";
+    public static final String INTERNAL = "Internal";
+    public static final String PRIMARY = "Primary";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
@@ -115,5 +119,26 @@ public class Constants {
         public static final String KEYSTORE_KEY_PASSWORD = "keystore.identity.key.password";
         public static final String IDENTITY_KEY_PASSWORD = "identity.key.password";
         public static final String KEYSTORE_KEY_SECRET_PROVIDER = "keystore.identity.key.secretProvider";
+    }
+
+    public enum Error {
+
+        GET_KEY_ERROR_MESSAGE("Error retrieving key associated with alias : %s"),
+        CIPHER_INIT_ERROR_MESSAGE("Error initializing Cipher."),
+        INVALID_SECRET_ERROR_MESSAGE("The provided secret key is invalid."),
+        JSON_VALUE_NOT_FOUND("Value \"%s\" not found in JSON"),
+        TOML_NOT_FOUND("Deployment file %s not found"),
+        PARAMETER_REQUIRED_FOR_ROTATE_MODE("%s parameter is required for key rotate mode mode."),
+        INVALID_JSON("Invalid encrypted text: JSON parsing failed.");
+
+        private final String messageTemplate;
+
+        Error(String messageTemplate) {
+            this.messageTemplate = messageTemplate;
+        }
+
+        public String getMessage(Object... args) {
+            return String.format(this.messageTemplate, args);
+        }
     }
 }

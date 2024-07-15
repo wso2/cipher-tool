@@ -99,7 +99,8 @@ public class CipherTool {
         } else if (Constants.TRUE.equals(System.getProperty(Constants.ROTATE))) {
             String oldAlias  = System.getProperty(Constants.OLD_KEY_ALIAS);
             if (StringUtils.isBlank(oldAlias)) {
-                throw new CipherToolException(Constants.OLD_KEY_ALIAS + " parameter is required for key rotate mode.");
+                throw new CipherToolException(
+                        Constants.Error.PARAMETER_REQUIRED_FOR_ROTATE_MODE.getMessage(Constants.OLD_KEY_ALIAS));
             }
             CipherMode oldCipherMode = isSymmetricKey(oldAlias, keyStore)
                     ? new SymmetricCipher(keyStore, oldAlias) : new AsymmetricCipher(keyStore, oldAlias);
@@ -111,7 +112,6 @@ public class CipherTool {
                     String oldEncryptedValue = Utils.getEncryptedValue(entry.getValue());
                     if (StringUtils.isNotEmpty(oldEncryptedValue)) {
                         String value = oldCipherMode.doDecryption(oldEncryptedValue);
-                        secretMap.replace(key, value);
                         if (StringUtils.isNotEmpty(value)) {
                             String encryptedValue = cipherMode.doEncryption(value);
                             secretMap.replace(key, encryptedValue);
@@ -120,7 +120,7 @@ public class CipherTool {
                 }
                 updateDeploymentConfigurationWithEncryptedKeys(secretMap);
             } else {
-                throw new CipherToolException(deploymentTomlFile + " file not found.");
+                throw new CipherToolException(Constants.Error.TOML_NOT_FOUND.getMessage(deploymentTomlFile));
             }
             Utils.writeToSecureConfPropertyFile();
         } else if (Constants.TRUE.equals(System.getProperty(Constants.CHANGE))) {

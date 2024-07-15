@@ -17,6 +17,9 @@
  */
 package org.wso2.ciphertool.cipher;
 
+/**
+ * The interface for providing methods for encrypting and decrypting text.
+ */
 public interface CipherMode {
 
     /**

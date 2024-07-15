@@ -328,7 +328,7 @@ public class Utils {
 
                 keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder, defaultConfigMap);
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
-                String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+                String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
 
                 if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
                     System.out.println("\nSymmetric encryption using " + keyStoreName + " KeyStore.");
@@ -628,10 +628,10 @@ public class Utils {
     }
 
     /**
-     * Read encrypted value from [secrets] section in deployment toml file.
+     * Returns value from [secrets] section in deployment toml file, if encrypted.
      *
-     * @param value Key to read.
-     * @return      Unencrypted value.
+     * @param value The input string to be checked
+     * @return The input string if it does not contain '[' or ']' otherwise, returns null.
      */
     public static String getEncryptedValue(String value) {
 

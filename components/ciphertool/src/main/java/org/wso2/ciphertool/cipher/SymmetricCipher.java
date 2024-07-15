@@ -53,9 +53,6 @@ public class SymmetricCipher implements CipherMode {
     private final Key secretKey;
     private final Cipher cipher;
     private final String algorithm;
-    private static final String GET_KEY_ERROR_MESSAGE = "Error retrieving key associated with alias : ";
-    private static final String CIPHER_INIT_ERROR_MESSAGE = "Error initializing Cipher.";
-    private static final String INVALID_SECRET_ERROR_MESSAGE = "The provided secret key is invalid.";
 
     public SymmetricCipher(KeyStore keyStore, String keyAlias) {
 
@@ -66,13 +63,13 @@ public class SymmetricCipher implements CipherMode {
         try {
             this.secretKey = keyStore.getKey(keyAlias, password.toCharArray());
             if (this.secretKey == null) {
-                throw new KeyStoreException(GET_KEY_ERROR_MESSAGE + keyAlias);
+                throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE + keyAlias);
             }
             this.cipher = Cipher.getInstance(this.algorithm);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+            throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
         } catch (KeyStoreException | UnrecoverableKeyException e) {
-            throw new CipherToolException(GET_KEY_ERROR_MESSAGE + keyAlias, e);
+            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE + keyAlias, e);
         }
     }
 
@@ -101,9 +98,9 @@ public class SymmetricCipher implements CipherMode {
                 return Utils.doEncryption(cipher, plainText);
             }
         } catch (InvalidAlgorithmParameterException e) {
-            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+            throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
         }  catch (InvalidKeyException e) {
-            throw new CipherToolException(INVALID_SECRET_ERROR_MESSAGE, e);
+            throw new CipherToolException(Constants.Error.INVALID_SECRET_ERROR_MESSAGE.getMessage(), e);
         }
     }
 
@@ -120,8 +117,8 @@ public class SymmetricCipher implements CipherMode {
             byte[] encryptedText;
             if (Constants.AES_GCM_NO_PADDING.equals(this.algorithm)) {
                 JsonObject jsonObject = getJsonObject(cipherText);
-                encryptedText = getValueFromJson(jsonObject, "cipherText");
-                byte[] iv = getValueFromJson(jsonObject, "iv");
+                encryptedText = getValueFromJson(jsonObject, Constants.CIPHERTEXT);
+                byte[] iv = getValueFromJson(jsonObject, Constants.IV);
                 cipher.init(Cipher.DECRYPT_MODE, this.secretKey, new GCMParameterSpec(GCM_TAG_LENGTH, iv));
             } else {
                 cipher.init(Cipher.DECRYPT_MODE, this.secretKey);
@@ -129,9 +126,9 @@ public class SymmetricCipher implements CipherMode {
             }
             return Utils.doDecryption(cipher, encryptedText);
         } catch (InvalidAlgorithmParameterException e) {
-            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+            throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
         }  catch (InvalidKeyException e) {
-            throw new CipherToolException(INVALID_SECRET_ERROR_MESSAGE, e);
+            throw new CipherToolException(Constants.Error.INVALID_SECRET_ERROR_MESSAGE.getMessage(), e);
         }
     }
 
@@ -141,7 +138,7 @@ public class SymmetricCipher implements CipherMode {
             String jsonString = new String(Base64.getDecoder().decode(encryptedText));
             return JsonParser.parseString(jsonString).getAsJsonObject();
         } catch (JsonSyntaxException e) {
-            throw new CipherToolException("Invalid encrypted text: JSON parsing failed.");
+            throw new CipherToolException(Constants.Error.INVALID_JSON.getMessage());
         }
     }
 
@@ -149,7 +146,7 @@ public class SymmetricCipher implements CipherMode {
 
         JsonElement jsonElement = jsonObject.get(value);
         if (jsonElement == null) {
-            throw new CipherToolException(String.format("Value \"%s\" not found in JSON", value));
+            throw new CipherToolException(Constants.Error.JSON_VALUE_NOT_FOUND.getMessage(value));
         }
         return Base64.getDecoder().decode(jsonElement.getAsString().getBytes(StandardCharsets.UTF_8));
     }
@@ -166,8 +163,8 @@ public class SymmetricCipher implements CipherMode {
     private String createSelfContainedCiphertextWithGCMMode(String originalCipher, byte[] iv) {
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("cipherText", originalCipher);
-        jsonObject.addProperty("iv", Base64.getEncoder().encodeToString(iv));
+        jsonObject.addProperty(Constants.CIPHERTEXT, originalCipher);
+        jsonObject.addProperty(Constants.IV, Base64.getEncoder().encodeToString(iv));
         return Base64.getEncoder().encodeToString(new Gson().toJson(jsonObject).getBytes());
     }
 }
