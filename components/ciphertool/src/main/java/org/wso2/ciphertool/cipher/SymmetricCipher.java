@@ -53,6 +53,9 @@ public class SymmetricCipher implements CipherMode {
     private final Key secretKey;
     private final Cipher cipher;
     private final String algorithm;
+    private static final String GET_KEY_ERROR_MESSAGE = "Error retrieving key associated with alias : ";
+    private static final String CIPHER_INIT_ERROR_MESSAGE = "Error initializing Cipher.";
+    private static final String INVALID_SECRET_ERROR_MESSAGE = "The provided secret key is invalid.";
 
     public SymmetricCipher(KeyStore keyStore, String keyAlias) {
 
@@ -63,13 +66,13 @@ public class SymmetricCipher implements CipherMode {
         try {
             this.secretKey = keyStore.getKey(keyAlias, password.toCharArray());
             if (this.secretKey == null) {
-                throw new KeyStoreException("Error retrieving key associated with alias : " + keyAlias);
+                throw new KeyStoreException(GET_KEY_ERROR_MESSAGE + keyAlias);
             }
             this.cipher = Cipher.getInstance(this.algorithm);
-        } catch (KeyStoreException | NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new CipherToolException("Error initializing Keystore ", e);
-        } catch (UnrecoverableKeyException e) {
-            throw new CipherToolException("Error retrieving key associated with alias : " + keyAlias, e);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+        } catch (KeyStoreException | UnrecoverableKeyException e) {
+            throw new CipherToolException(GET_KEY_ERROR_MESSAGE + keyAlias, e);
         }
     }
 
@@ -97,8 +100,10 @@ public class SymmetricCipher implements CipherMode {
                 cipher.init(Cipher.ENCRYPT_MODE, this.secretKey);
                 return Utils.doEncryption(cipher, plainText);
             }
-        } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
-            throw new CipherToolException("Error initializing Cipher ", e);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+        }  catch (InvalidKeyException e) {
+            throw new CipherToolException(INVALID_SECRET_ERROR_MESSAGE, e);
         }
     }
 
@@ -123,9 +128,10 @@ public class SymmetricCipher implements CipherMode {
                 encryptedText = Base64.getDecoder().decode(cipherText.getBytes(StandardCharsets.UTF_8));
             }
             return Utils.doDecryption(cipher, encryptedText);
-        } catch (InvalidKeyException |
-                 InvalidAlgorithmParameterException e) {
-            throw new CipherToolException("Error initializing Cipher ", e);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
+        }  catch (InvalidKeyException e) {
+            throw new CipherToolException(INVALID_SECRET_ERROR_MESSAGE, e);
         }
     }
 

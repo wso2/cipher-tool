@@ -44,6 +44,8 @@ public class AsymmetricCipher implements CipherMode {
     private final String keyAlias;
     private final KeyStore keyStore;
     private final Cipher cipher;
+    private static final String CIPHER_INIT_ERROR_MESSAGE = "Error initializing Cipher.";
+    private static final String GET_KEY_ERROR_MESSAGE = "Error retrieving key associated with alias : ";
 
     public AsymmetricCipher(KeyStore keyStore, String keyAlias) {
 
@@ -55,7 +57,7 @@ public class AsymmetricCipher implements CipherMode {
         try {
             this.cipher = Cipher.getInstance(algorithm);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            throw new CipherToolException("Error initializing Keystore ", e);
+            throw new CipherToolException(CIPHER_INIT_ERROR_MESSAGE, e);
         }
     }
 
@@ -76,8 +78,10 @@ public class AsymmetricCipher implements CipherMode {
         try {
             Certificate certs = this.keyStore.getCertificate(this.keyAlias);
             cipher.init(Cipher.ENCRYPT_MODE, certs);
-        } catch (KeyStoreException | InvalidKeyException e) {
-            throw new CipherToolException("Error initializing Cipher ", e);
+        } catch (KeyStoreException e) {
+            throw new CipherToolException(GET_KEY_ERROR_MESSAGE + this.keyAlias, e);
+        } catch (InvalidKeyException e) {
+            throw new CipherToolException("The provided public cert is invalid.", e);
         }
         return Utils.doEncryption(cipher, plainText);
     }
@@ -88,10 +92,10 @@ public class AsymmetricCipher implements CipherMode {
         try {
             Key privateKey = this.keyStore.getKey(this.keyAlias, KeyStoreUtil.getKeystorePassword().toCharArray());
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        }  catch (KeyStoreException | NoSuchAlgorithmException e) {
-            throw new CipherToolException("Error initializing Cipher ", e);
-        } catch (UnrecoverableKeyException | InvalidKeyException e) {
-            throw new CipherToolException("Error retrieving key associated with alias : " + keyAlias, e);
+        }  catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new CipherToolException("The provided private key is invalid.", e);
+        } catch (KeyStoreException | UnrecoverableKeyException e) {
+            throw new CipherToolException(GET_KEY_ERROR_MESSAGE + this.keyAlias, e);
         }
         return Utils.doDecryption(cipher, Base64.getDecoder().decode(cipherText.getBytes(StandardCharsets.UTF_8)));
     }
