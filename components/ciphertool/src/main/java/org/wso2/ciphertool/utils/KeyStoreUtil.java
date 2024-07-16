@@ -15,6 +15,7 @@
  */
 package org.wso2.ciphertool.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.wso2.ciphertool.exception.CipherToolException;
 
 import javax.crypto.Cipher;
@@ -32,12 +33,48 @@ import java.security.cert.CertificateException;
 public class KeyStoreUtil {
 
     /**
+     * Retrieves the password for the keystore.
+     *
+     * @return The keystore password.
+     */
+    public static String getKeystorePassword() {
+
+        String password;
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
+        if (StringUtils.isNotEmpty(System.getProperty(Constants.KEYSTORE_PASSWORD))) {
+            password = System.getProperty(Constants.KEYSTORE_PASSWORD);
+        } else {
+            password = Utils.getValueFromConsole("Please Enter " + keyStoreName + " KeyStore Password of Carbon Server : ", true);
+            System.setProperty(Constants.KEYSTORE_PASSWORD, password);
+        }
+        if (password == null) {
+            throw new CipherToolException("KeyStore password can not be null");
+        }
+        return password;
+    }
+
+    /**
+     * Retrieves the keystore for the Carbon Server.
+     *
+     * @return The keystore.
+     */
+    public static KeyStore getKeyStore() {
+
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
+        String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
+        String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
+        String password = getKeystorePassword();
+        System.out.println("\n" + keyStoreName + " KeyStore of Carbon Server is initialized Successfully\n");
+        return getKeyStore(keyStoreFile, password, keyType);
+    }
+
+    /**
      * Initializes the Cipher
      * @return cipher cipher
      */
     public static Cipher initializeCipher() {
         Cipher cipher;
-        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
         String keyAlias = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
@@ -76,7 +113,7 @@ public class KeyStoreUtil {
         return cipher;
     }
 
-    private static KeyStore getKeyStore(String location, String storePassword, String storeType) {
+    public static KeyStore getKeyStore(String location, String storePassword, String storeType) {
         BufferedInputStream bufferedInputStream = null;
         try {
             bufferedInputStream = new BufferedInputStream(new FileInputStream(location));
