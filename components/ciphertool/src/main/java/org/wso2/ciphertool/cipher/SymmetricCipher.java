@@ -132,25 +132,45 @@ public class SymmetricCipher implements CipherMode {
         }
     }
 
-    private JsonObject getJsonObject(String encryptedText) {
+    /**
+     * Decodes the given Base64 encoded string into a JsonObject.
+     *
+     * @param encodedCiphertext Base64 encoded string representing the JSON object.
+     * @return                  The parsed JSON object.
+     * @throws CipherToolException if the provided string is not a valid JSON
+     */
+    private JsonObject getJsonObject(String encodedCiphertext) {
 
         try {
-            String jsonString = new String(Base64.getDecoder().decode(encryptedText));
+            String jsonString = new String(Base64.getDecoder().decode(encodedCiphertext));
             return JsonParser.parseString(jsonString).getAsJsonObject();
         } catch (JsonSyntaxException e) {
             throw new CipherToolException(Constants.Error.INVALID_JSON.getMessage());
         }
     }
 
-    private byte[] getValueFromJson(JsonObject jsonObject, String value) {
+    /**
+     * Retrieves the value associated with the specified key from the given JsonObject and decodes it from Base64.
+     *
+     * @param jsonObject    JSON object containing the key-value pair.
+     * @param key           Key for the value to be retrieved.
+     * @return The decoded value
+     * @throws CipherToolException if the key is not found in the JsonObject
+     */
+    private byte[] getValueFromJson(JsonObject jsonObject, String key) {
 
-        JsonElement jsonElement = jsonObject.get(value);
+        JsonElement jsonElement = jsonObject.get(key);
         if (jsonElement == null) {
-            throw new CipherToolException(Constants.Error.JSON_VALUE_NOT_FOUND.getMessage(value));
+            throw new CipherToolException(Constants.Error.JSON_VALUE_NOT_FOUND.getMessage(key));
         }
         return Base64.getDecoder().decode(jsonElement.getAsString().getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Generates a new initialization vector (IV) for GCM encryption.
+     *
+     * @return the generated IV as a byte array
+     */
     private byte[] getInitializationVector() {
 
         byte[] iv = new byte[GCM_IV_LENGTH];
@@ -160,10 +180,17 @@ public class SymmetricCipher implements CipherMode {
     }
 
 
-    private String createSelfContainedCiphertextWithGCMMode(String originalCipher, byte[] iv) {
+    /**
+     * Creates a self-contained ciphertext with GCM mode.
+     *
+     * @param ciphertext    Original ciphertext to be included in the JSON object.
+     * @param iv            Initialization vector.
+     * @return Base64 encoded JSON object containing the ciphertext and IV.
+     */
+    private String createSelfContainedCiphertextWithGCMMode(String ciphertext, byte[] iv) {
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty(Constants.CIPHERTEXT, originalCipher);
+        jsonObject.addProperty(Constants.CIPHERTEXT, ciphertext);
         jsonObject.addProperty(Constants.IV, Base64.getEncoder().encodeToString(iv));
         return Base64.getEncoder().encodeToString(new Gson().toJson(jsonObject).getBytes());
     }

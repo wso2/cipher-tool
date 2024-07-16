@@ -467,6 +467,14 @@ public class CipherTool {
         }
     }
 
+    /**
+     * Checks if the key associated with the given alias in the provided keystore is a symmetric key.
+     *
+     * @param keyAlias the alias of the key to be checked.
+     * @param keystore the keystore containing the key.
+     * @return true if the key is a symmetric key, false otherwise.
+     * @throws CipherToolException if there is an error initializing the cipher or retrieving the key
+     */
     private static boolean isSymmetricKey(String keyAlias, KeyStore keystore) {
         try {
             Key key = keystore.getKey(keyAlias, KeyStoreUtil.getKeystorePassword().toCharArray());
