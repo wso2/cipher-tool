@@ -63,13 +63,13 @@ public class SymmetricCipher implements CipherMode {
         try {
             this.secretKey = keyStore.getKey(keyAlias, password.toCharArray());
             if (this.secretKey == null) {
-                throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE + keyAlias);
+                throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyAlias));
             }
             this.cipher = Cipher.getInstance(this.algorithm);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
         } catch (KeyStoreException | UnrecoverableKeyException e) {
-            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE + keyAlias, e);
+            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyAlias), e);
         }
     }
 
