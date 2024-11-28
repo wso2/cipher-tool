@@ -45,7 +45,7 @@ public class Encryptor {
     private static final char[] HEX_CHARACTERS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     public static final String CRYPTO_PROVIDER_BC = "BC";
     private static final String DEFAULT_CRYPTO_ALGORITHM = "RSA";
-    private static final String DIGEST_ALGORITHM = "SHA-1";
+    private static final String DIGEST_ALGORITHM = "SHA-256";
 
     public String encrypt(String cleartext, CryptoContext cryptoContext) throws Exception {
 
