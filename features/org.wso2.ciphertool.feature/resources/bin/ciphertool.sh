@@ -102,17 +102,8 @@ if $mingw ; then
   # TODO classpath?
 fi
 
-# update classpath
-CARBON_CLASSPATH=""
-for f in "$CARBON_HOME"/lib/*.jar
-do
-  CARBON_CLASSPATH=$CARBON_CLASSPATH:$f
-done
-for h in "$CARBON_HOME"/repository/components/plugins/*.jar
-do
-  CARBON_CLASSPATH=$CARBON_CLASSPATH:$h
-done
-CARBON_CLASSPATH=$CARBON_CLASSPATH:$CLASSPATH
+#Update classpath using folder-based approach
+CARBON_CLASSPATH="$CARBON_HOME/lib/*:$CARBON_HOME/repository/components/plugins/*:$CLASSPATH"
 
 # For Cygwin, switch paths to Windows format before running java
 if $cygwin; then

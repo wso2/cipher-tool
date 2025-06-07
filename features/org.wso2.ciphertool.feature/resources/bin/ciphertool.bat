@@ -75,8 +75,8 @@ rem loop through the libs and add them to the class path
 cd "%CARBON_HOME%"
 call ant -buildfile "%CARBON_HOME%\bin\build.xml" -q
 set CARBON_CLASSPATH=.\conf
-FOR %%c in ("%CARBON_HOME%\lib\*.jar") DO set CARBON_CLASSPATH=!CARBON_CLASSPATH!;".\lib\%%~nc%%~xc"
-FOR %%C in ("%CARBON_HOME%\repository\lib\*.jar") DO set CARBON_CLASSPATH=!CARBON_CLASSPATH!;".\repository\lib\%%~nC%%~xC"
+set CARBON_CLASSPATH=%CARBON_CLASSPATH%;".\lib\*"
+set CARBON_CLASSPATH=%CARBON_CLASSPATH%;".\repository\components\plugins\*"
 
 rem ----- Execute The Requested Command ---------------------------------------
 echo Using CARBON_HOME:   %CARBON_HOME%
