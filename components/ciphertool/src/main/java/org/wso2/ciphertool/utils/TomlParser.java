@@ -31,6 +31,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+/**
+ * Parser class for reading and converting TOML configuration files into structured objects.
+ */
 public class TomlParser {
     private static final Logger log = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     private TomlParseResult tomlContent;
