@@ -15,7 +15,6 @@
  */
 package org.wso2.ciphertool;
 
-
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -23,16 +22,13 @@ import org.w3c.dom.NodeList;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
 import org.wso2.ciphertool.utils.KeyStoreUtil;
+import org.wso2.ciphertool.utils.TomlParser;
 import org.wso2.ciphertool.utils.Utils;
 import org.xml.sax.SAXException;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -42,7 +38,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.*;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -52,18 +47,17 @@ import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
 
 public class CipherTool {
 
-    private static Map<String, String> configFileXpathMap = new HashMap<String, String>();
-    private static Map<String, String> aliasPasswordMap = new HashMap<String, String>();
+    private static final Map<String, String> configFileXpathMap = new HashMap<String, String>();
+    private static final Map<String, String> aliasPasswordMap = new HashMap<String, String>();
 
     public static void main(String[] args) {
-
-        initialize(args);
+        TomlParser tomlContentHolder = new TomlParser();
+        initialize(args, tomlContentHolder);
         Cipher cipher = KeyStoreUtil.initializeCipher();
         if (System.getProperty(Constants.CONFIGURE) != null &&
-            System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
-            File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
-            if (deploymentTomlFile.exists()) {
-                Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+                System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
+            if (tomlContentHolder.isFileExist()) {
+                Map<String, String> secretMap = tomlContentHolder.getSecrets();
                 for (Map.Entry<String, String> entry : secretMap.entrySet()) {
                     String key = entry.getKey();
                     String value = Utils.getUnEncryptedValue(entry.getValue());
@@ -80,8 +74,8 @@ public class CipherTool {
             }
             Utils.writeToSecureConfPropertyFile();
         } else if (System.getProperty(Constants.CHANGE) != null &&
-                   System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
-            changePassword(cipher);
+                System.getProperty(Constants.CHANGE).equals(Constants.TRUE)) {
+            changePassword(cipher, tomlContentHolder);
         } else {
             encryptedValue(cipher);
         }
@@ -92,7 +86,7 @@ public class CipherTool {
      *
      * @param args command line arguments
      */
-    private static void initialize(String[] args) {
+    private static void initialize(String[] args, TomlParser tomlContentHolder) {
         for (String arg : args) {
             if (arg.equals("-help")) {
                 printHelp();
@@ -111,13 +105,14 @@ public class CipherTool {
                 } else if ((Constants.CHANGE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
-                    if (!StringUtils.isBlank(value)) {
-                        System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
-                    } else {
-                        System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
-                    }
-                } else if (propertyName.length() >= 8 && (Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName.substring(0, 8))) {
-                    System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
+                    setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value,
+                            "Invalid transformation algorithm provided. " +
+                                    "The default transformation algorithm (RSA) will be used");
+                } else if (propertyName.equalsIgnoreCase(Constants.JCEProviders.SECURITY_JCE_PROVIDER)) {
+                    setProperty(Constants.JCEProviders.JCE_PROVIDER, value, "Invalid JCE provider provided!");
+                    KeyStoreUtil.addJceProvider();
+                } else if ((Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName)) {
+                    setProperty(Constants.KEYSTORE_PASSWORD, value, "Invalid KeyStore password provided!");
                 } else {
                     System.out.println("This option is not defined!");
                     System.exit(-1);
@@ -126,7 +121,15 @@ public class CipherTool {
         }
         // Avoid setting system properties if initiated by an external program.
         if (!Boolean.getBoolean(Constants.SET_EXTERNAL_SYSTEM_PROPERTY)) {
-            Utils.setSystemProperties();
+            Utils.setSystemProperties(tomlContentHolder);
+        }
+    }
+
+    private static void setProperty(String key, String value, String msg) {
+        if (!StringUtils.isBlank(value)) {
+            System.setProperty(key, value);
+        } else {
+            System.out.println(msg);
         }
     }
 
@@ -275,13 +278,16 @@ public class CipherTool {
                         "Error writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
             } catch (TransformerException e) {
                 throw new CipherToolException(
-                        "Error writing protected token [" + secretAlias + "] to " + fileName + " file ", e);
+                        "Transformation error occurred while writing protected token [" + secretAlias + "] to file: " +
+                                fileName, e);
             } catch (SAXException e) {
                 throw new CipherToolException(
-                        "Error writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
+                        "XML parsing error occurred while writing protected token [" + secretAlias + "] to file: " +
+                                fileName, e);
             } catch (IOException e) {
                 throw new CipherToolException(
-                        "Error writing protected token  [" + secretAlias + "] to " + fileName + " file ", e);
+                        "I/O error occurred while writing protected token [" + secretAlias + "] to file: " +
+                                fileName, e);
             }
 
             System.out.println("Protected Token [" + secretAlias + "] is updated in " + fileName + " successfully\n");
@@ -333,11 +339,11 @@ public class CipherTool {
     /**
      * use to change an specific password.
      */
-    private static void changePassword(Cipher cipher) {
+    private static void changePassword(Cipher cipher, TomlParser tomlContentHolder) {
         File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
         List<String> keyValueList = new ArrayList<String>();
         if (deploymentTomlFile.exists()) {
-            Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
+            Map<String, String> secretMap = tomlContentHolder.getSecrets();
             int i = 1;
             for (Map.Entry<String, String> entry : secretMap.entrySet()) {
                 aliasPasswordMap.put(entry.getKey(), entry.getValue());
@@ -370,8 +376,8 @@ public class CipherTool {
             throws CipherToolException {
         try {
             List<String> lines = Files.readAllLines(Paths.get(Utils.getDeploymentFilePath()));
-            try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new
-                 FileOutputStream(Utils.getDeploymentFilePath()), StandardCharsets.UTF_8))) {
+            try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(
+                    Files.newOutputStream(Paths.get(Utils.getDeploymentFilePath())), StandardCharsets.UTF_8))) {
                 boolean found = false;
                 for (String line : lines) {
                     boolean isLineCommented = line.trim().matches("^#.*");

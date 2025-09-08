@@ -15,9 +15,6 @@
  */
 package org.wso2.ciphertool.utils;
 
-import net.consensys.cava.toml.Toml;
-import net.consensys.cava.toml.TomlParseResult;
-import net.consensys.cava.toml.TomlTable;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,23 +34,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
 import java.io.*;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import static org.wso2.ciphertool.utils.Constants.ENV_VAR_PLACEHOLDER_PREFIX;
-import static org.wso2.ciphertool.utils.Constants.PLACEHOLDER_SUFFIX;
-import static org.wso2.ciphertool.utils.Constants.SYS_PROPERTY_PLACEHOLDER_PREFIX;
 
 public class Utils {
-
-    private static final Logger log = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     private static boolean primaryKeyStore = true;
     private static final String BACKSLASH = "\\";
@@ -95,7 +82,7 @@ public class Utils {
 
         InputStream inputStream = null;
         try {
-            inputStream = new FileInputStream(file);
+            inputStream = Files.newInputStream(file.toPath());
             properties.load(inputStream);
         } catch (IOException e) {
             String msg = "Error loading properties from a file at :" + filePath;
@@ -233,9 +220,8 @@ public class Utils {
     /**
      * Set the system properties
      */
-    public static void setSystemProperties() {
-        String keyStoreFile, keyType, keyAlias, secretConfPropFile, secretConfFile, cipherTextPropFile,
-                cipherToolPropFile;
+    public static void setSystemProperties(TomlParser tomlContentHolder) {
+        String keyStoreFile, keyType, keyAlias, secretConfFile, cipherTextPropFile, cipherToolPropFile;
 
         String homeFolder = System.getProperty(Constants.CARBON_HOME);
 
@@ -272,13 +258,6 @@ public class Utils {
                             Constants.PrimaryKeyStore.KEY_ALIAS_XPATH);
                 }
 
-                keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder);
-                System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
-                String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
-
-                System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
-                System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
-
                 if (hasConfigInRepository) {
 	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
 	                                 Constants.SECURITY_DIR + File.separator + Constants.SECRET_PROPERTY_FILE;
@@ -302,10 +281,12 @@ public class Utils {
                         "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
             } catch (SAXException e) {
                 throw new CipherToolException(
-                        "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
+                        "Invalid XML format in the primary key store configuration at "
+                                + Constants.CARBON_CONFIG_FILE + " file ", e);
             } catch (IOException e) {
                 throw new CipherToolException(
-                        "Error reading primary key Store details from " + Constants.CARBON_CONFIG_FILE + " file ", e);
+                        "Error while reading the primary key store configuration from " +
+                                Constants.CARBON_CONFIG_FILE + " file ", e);
             }
         } else {
             Path standaloneConfigPath =
@@ -333,6 +314,11 @@ public class Utils {
                         .SECRET_PROPERTY_FILE_PROPERTY)).toString();
             }
         }
+        if (tomlContentHolder.isFileExist()) {
+            keyStoreFile = tomlContentHolder.getKeyFile();
+            keyType = tomlContentHolder.getKeyType();
+            keyAlias = tomlContentHolder.getKeyAlias();
+        }
 
         if (keyStoreFile.trim().isEmpty()) {
             throw new CipherToolException("KeyStore file path cannot be empty");
@@ -340,15 +326,24 @@ public class Utils {
         if (keyAlias == null || keyAlias.trim().isEmpty()) {
             throw new CipherToolException("Key alias cannot be empty");
         }
+        if (keyType == null || keyType.trim().isEmpty()) {
+            throw new CipherToolException("Key type cannot be empty");
+        }
 
         System.setProperty(Constants.HOME_FOLDER, homeFolder);
-        System.setProperty(Constants.KEY_LOCATION_PROPERTY, getConfigFilePath(keyStoreFile));
         System.setProperty(Constants.KEY_TYPE_PROPERTY, keyType);
         System.setProperty(Constants.KEY_ALIAS_PROPERTY, keyAlias);
         System.setProperty(Constants.SECRET_PROPERTY_FILE_PROPERTY, secretConfFile);
         System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, cipherTextPropFile);
         System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherTextPropFile));
         System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherToolPropFile));
+
+        keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder);
+        System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+
+        System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
+        System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
     }
 
     /**
@@ -403,70 +398,16 @@ public class Utils {
     public static String doEncryption(Cipher cipher, String plainTextPwd) {
         String encodedValue;
         try {
-            byte[] encryptedPassword = cipher.doFinal(plainTextPwd.getBytes(Charset.forName(Constants.UTF8)));
+            byte[] encryptedPassword = cipher.doFinal(plainTextPwd.getBytes(StandardCharsets.UTF_8));
             encodedValue = DatatypeConverter.printBase64Binary(encryptedPassword);
         } catch (BadPaddingException e) {
             throw new CipherToolException("Error encrypting password ", e);
         } catch (IllegalBlockSizeException e) {
-            throw new CipherToolException("Error encrypting password ", e);
+            throw new CipherToolException("Illegal block size encountered while encrypting the password. " +
+                    "Input data length may be incorrect. ", e);
         }
         System.out.println("\nEncryption is done Successfully\n");
         return encodedValue;
-    }
-
-    /**
-     * Read toml file and return list of secrets
-     *
-     * @param configFilePath    file path to deployment toml
-     * @return      Map of secrets
-     */
-    public static Map<String, String> getSecreteFromConfiguration(String configFilePath) {
-        Map<String, String> context = new LinkedHashMap<>();
-        try {
-            TomlParseResult result = Toml.parse(Paths.get(configFilePath));
-            if (result.hasErrors()) {
-                throw new CipherToolException("Error while parsing TOML config file");
-            }
-            TomlTable table = result.getTable(Constants.SECRET_PROPERTY_MAP_NAME);
-            if (table != null) {
-                table.dottedKeySet().forEach(key -> context.put(key, resolveVariable(table.getString(key))));
-            }
-
-        } catch (IOException e) {
-            System.out.println("Error parsing file " + configFilePath + e.toString());
-            return context;
-        }
-
-        return context;
-    }
-
-    private static String resolveVariable(String text) {
-        String sysRefs = StringUtils.substringBetween(text, SYS_PROPERTY_PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX);
-        String envRefs = StringUtils.substringBetween(text, ENV_VAR_PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX);
-
-        // Resolves system property references ($sys{ref}) in an individual string.
-        if (sysRefs != null) {
-            String property = System.getProperty(sysRefs);
-            if (StringUtils.isNotEmpty(property)) {
-                text = text.replaceAll(Pattern.quote(SYS_PROPERTY_PLACEHOLDER_PREFIX + sysRefs + PLACEHOLDER_SUFFIX), property);
-            } else {
-                log.warning("System property is not available for " + sysRefs);
-            }
-            return text;
-        }
-
-        // Resolves environment variable references ($env{ref}) in an individual string.
-        if (envRefs != null) {
-            String resolvedValue = System.getenv(envRefs);
-            if (StringUtils.isNotEmpty(resolvedValue)) {
-                text = text.replaceAll(Pattern.quote(ENV_VAR_PLACEHOLDER_PREFIX + envRefs + PLACEHOLDER_SUFFIX), resolvedValue);
-            } else {
-                log.warning("Environment variable is not available for " + envRefs);
-            }
-            return text;
-        }
-
-        return text;
     }
 
     /**

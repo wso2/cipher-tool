@@ -16,9 +16,6 @@
 package org.wso2.ciphertool.utils;
 
 public class Constants {
-
-    public static final String UTF8 = "UTF-8";
-    public static final String OS_NAME = "os.name";
     public static final String CONSOLE_PASSWORD_PARAM = "password";
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";
@@ -71,6 +68,17 @@ public class Constants {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/InternalKeyStore/Location";
         public static final String KEY_TYPE_XPATH = "//Server/Security/InternalKeyStore/Type";
         public static final String KEY_ALIAS_XPATH = "//Server/Security/InternalKeyStore/KeyAlias";
+    }
+
+    public static final class JCEProviders {
+        public static final String SECURITY_JCE_PROVIDER = "security.jce.provider";
+        public static final String JCE_PROVIDER = "jce.provider";
+        public static final String KEYSTORE_KEY = "keystore.primary";
+        public static final String BOUNCY_CASTLE_PROVIDER = "BC";
+        public static final String BOUNCY_CASTLE_FIPS_PROVIDER = "BCFIPS";
+        public static final String BC_FIPS_CLASS_NAME = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
+        public static final String BC_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+        public static final String FIPS_APPROVED_ONLY = "org.bouncycastle.fips.approved_only";
     }
 
     public static final class SecureVault {
