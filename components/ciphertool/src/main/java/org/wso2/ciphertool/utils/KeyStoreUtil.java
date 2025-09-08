@@ -138,9 +138,9 @@ public class KeyStoreUtil {
         }
     }
 
-    private static void insertJceProvider(String jceProvider) {
+    private static void insertJceProvider(String jceProviderClassName) {
         try {
-            Security.insertProviderAt((Provider) Class.forName(jceProvider).
+            Security.insertProviderAt((Provider) Class.forName(jceProviderClassName).
                     getDeclaredConstructor().newInstance(), 1);
         } catch (InstantiationException e) {
             throw new RuntimeException("Failed to instantiate the class. Ensure it has " +

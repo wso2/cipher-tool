@@ -20,7 +20,6 @@ package org.wso2.ciphertool.userstore;
 
 import com.google.gson.Gson;
 import org.apache.axiom.om.util.Base64;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +30,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -46,10 +46,12 @@ public class Encryptor {
     public static final String CRYPTO_PROVIDER_BC = "BC";
     private static final String DEFAULT_CRYPTO_ALGORITHM = "RSA";
     private static final String DIGEST_ALGORITHM = "SHA-1";
+    public static final String BC_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
 
     public String encrypt(String cleartext, CryptoContext cryptoContext) throws Exception {
 
-        Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        Security.insertProviderAt((Provider) Class.forName(BC_CLASS_NAME).
+                getDeclaredConstructor().newInstance(), 1);
 
 
         byte[] cleartextBytes = cleartext.getBytes("UTF-8");
