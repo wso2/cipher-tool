@@ -49,11 +49,12 @@ public class CipherTool {
 
     private static final Map<String, String> configFileXpathMap = new HashMap<String, String>();
     private static final Map<String, String> aliasPasswordMap = new HashMap<String, String>();
+    private static String providerName;
 
     public static void main(String[] args) {
         TomlParser tomlContentHolder = new TomlParser();
         initialize(args, tomlContentHolder);
-        Cipher cipher = KeyStoreUtil.initializeCipher();
+        Cipher cipher = KeyStoreUtil.initializeCipher(providerName);
         if (System.getProperty(Constants.CONFIGURE) != null &&
                 System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
             if (tomlContentHolder.isFileExist()) {
@@ -109,8 +110,14 @@ public class CipherTool {
                             "Invalid transformation algorithm provided. " +
                                     "The default transformation algorithm (RSA) will be used");
                 } else if (propertyName.equalsIgnoreCase(Constants.JCEProviders.SECURITY_JCE_PROVIDER)) {
-                    setProperty(Constants.JCEProviders.JCE_PROVIDER, value, "Invalid JCE provider provided!");
-                    KeyStoreUtil.addJceProvider();
+                    if (StringUtils.isNotBlank(value) || Objects.requireNonNull(value).
+                            equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER) ||
+                            value.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER)) {
+                        providerName = value;
+                        KeyStoreUtil.addJceProvider(providerName);
+                    } else {
+                        System.out.println("Invalid JCE provider provided!");
+                    }
                 } else if ((Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName)) {
                     setProperty(Constants.KEYSTORE_PASSWORD, value, "Invalid KeyStore password provided!");
                 } else {

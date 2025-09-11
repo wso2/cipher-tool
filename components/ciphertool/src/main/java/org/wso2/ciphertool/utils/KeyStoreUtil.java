@@ -41,7 +41,7 @@ public class KeyStoreUtil {
      * Initializes the Cipher
      * @return cipher cipher
      */
-    public static Cipher initializeCipher() {
+    public static Cipher initializeCipher(String providerName) {
         Cipher cipher;
         String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
@@ -59,11 +59,11 @@ public class KeyStoreUtil {
             throw new CipherToolException("KeyStore password can not be null");
         }
 
-        KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
+        KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType, providerName);
         try {
             Certificate certs = primaryKeyStore.getCertificate(keyAlias);
             String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
-            String provider = getPreferredJceProvider();
+            String provider = getPreferredJceProvider(providerName);
             if (cipherTransformation != null) {
                 if (provider != null) {
                     cipher = Cipher.getInstance(cipherTransformation, provider);
@@ -94,11 +94,11 @@ public class KeyStoreUtil {
         return cipher;
     }
 
-    private static KeyStore getKeyStore(String location, String storePassword, String storeType) {
+    private static KeyStore getKeyStore(String location, String storePassword, String storeType, String providerName) {
         KeyStore keyStore;
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(Files.
                 newInputStream(Paths.get(location)))) {
-            String provider = getPreferredJceProvider();
+            String provider = getPreferredJceProvider(providerName);
             if (provider != null) {
                 keyStore = KeyStore.getInstance(storeType, provider);
             } else {
@@ -126,8 +126,8 @@ public class KeyStoreUtil {
         }
     }
 
-    public static void addJceProvider() {
-        String jceProvider = getPreferredJceProvider();
+    public static void addJceProvider(String providerName) {
+        String jceProvider = getPreferredJceProvider(providerName);
         if (StringUtils.isNotEmpty(jceProvider)) {
             if (Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER.equals(jceProvider)) {
                 insertJceProvider(Constants.JCEProviders.BC_FIPS_CLASS_NAME);
@@ -164,8 +164,7 @@ public class KeyStoreUtil {
      *
      * @return the preferred JCE provider
      */
-    private static String getPreferredJceProvider() {
-        String provider = System.getProperty(Constants.JCEProviders.JCE_PROVIDER);
+    private static String getPreferredJceProvider(String provider) {
         if (provider != null && provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER)) {
             return Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER;
         } else if (provider != null && provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER)) {
