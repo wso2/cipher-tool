@@ -165,10 +165,9 @@ public class KeyStoreUtil {
      * @return the preferred JCE provider
      */
     private static String getPreferredJceProvider(String provider) {
-        if (provider != null && provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER)) {
-            return Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER;
-        } else if (provider != null && provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER)) {
-            return Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER;
+        if (provider != null && (provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER) ||
+                provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER))) {
+            return provider;
         }
         return null;
     }
