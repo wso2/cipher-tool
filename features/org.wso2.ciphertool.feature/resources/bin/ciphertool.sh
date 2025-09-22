@@ -102,6 +102,42 @@ if $mingw ; then
   # TODO classpath?
 fi
 
+# --- Parse arguments for --debug ----------------------------------------------
+CMD=""
+PORT=""
+
+# Support: --debug <port> | -debug <port> | debug <port> | --debug=<port>
+for c in "$@"; do
+  case "$c" in
+    --debug|-debug|debug)
+      CMD="--debug"
+      ;;
+    --debug=*)
+      CMD="--debug"
+      PORT="${c#--debug=}"
+      ;;
+    *)
+      if [ "$CMD" = "--debug" ] && [ -z "$PORT" ]; then
+        PORT="$c"
+      fi
+      ;;
+  esac
+done
+
+if [ "$CMD" = "--debug" ]; then
+  if [ -z "$PORT" ]; then
+    echo "Please specify the debug port after the --debug option (e.g., --debug 5005 or --debug=5005)."
+    exit 1
+  fi
+  if [ -n "$JAVA_OPTS" ]; then
+    echo "Warning: User-specified JAVA_OPTS will be ignored when --debug is used."
+  fi
+  CMD="RUN"
+  # Modern JDWP flag (replacement for deprecated -Xdebug/-Xrunjdwp)
+  JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=$PORT"
+  echo "Please start the remote debugging client to continue (listening on port $PORT)..."
+fi
+
 # update classpath
 CARBON_CLASSPATH=""
 for f in "$CARBON_HOME"/lib/*.jar
@@ -122,6 +158,12 @@ if $cygwin; then
   JAVA_ENDORSED_DIRS=`cygpath --path --windows "$JAVA_ENDORSED_DIRS"`
 fi
 
-# ----- Execute The Requested Command -----------------------------------------
-
-$JAVA_HOME/bin/java -Dcarbon.home="$CARBON_HOME" -Dcarbon.config.dir.path="$CARBON_HOME"/repository/conf -classpath "$CARBON_CLASSPATH" org.wso2.ciphertool.CipherTool $*
+# --- Execute ------------------------------------------------------------------
+# Use "$JAVA_OPTS" so that --debug (JDWP) is actually applied.
+exec "$JAVA_HOME/bin/java" $JAVA_OPTS \
+  -Dcarbon.home="$CARBON_HOME" \
+  -Dcarbon.config.dir.path="$CARBON_HOME/conf" \
+  -Dorg.wso2.CipherTransformation="RSA/ECB/OAEPwithSHA1andMGF1Padding" \
+  -classpath "$CARBON_CLASSPATH" \
+  org.wso2.ciphertool.CipherTool \
+  "$@"
