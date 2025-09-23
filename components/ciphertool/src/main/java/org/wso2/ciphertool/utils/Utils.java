@@ -324,10 +324,10 @@ public class Utils {
             throw new CipherToolException("KeyStore file path cannot be empty");
         }
         if (keyAlias == null || keyAlias.trim().isEmpty()) {
-            throw new CipherToolException("Key alias cannot be empty");
+            throw new CipherToolException("KeyStore alias cannot be empty");
         }
         if (keyType == null || keyType.trim().isEmpty()) {
-            throw new CipherToolException("Key type cannot be empty");
+            throw new CipherToolException("KeyStore type cannot be empty");
         }
 
         System.setProperty(Constants.HOME_FOLDER, homeFolder);
