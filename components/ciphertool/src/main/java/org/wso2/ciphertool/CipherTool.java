@@ -49,12 +49,12 @@ public class CipherTool {
 
     private static final Map<String, String> configFileXpathMap = new HashMap<String, String>();
     private static final Map<String, String> aliasPasswordMap = new HashMap<String, String>();
-    private static String providerName;
+    public static String providerName;
 
     public static void main(String[] args) {
         TomlParser tomlContentHolder = new TomlParser();
         initialize(args, tomlContentHolder);
-        Cipher cipher = KeyStoreUtil.initializeCipher(providerName);
+        Cipher cipher = KeyStoreUtil.initializeCipher();
         if (System.getProperty(Constants.CONFIGURE) != null &&
                 System.getProperty(Constants.CONFIGURE).equals(Constants.TRUE)) {
             if (tomlContentHolder.isFileExist()) {
@@ -114,9 +114,9 @@ public class CipherTool {
                             equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER) ||
                             value.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER)) {
                         providerName = value;
-                        KeyStoreUtil.addJceProvider(providerName);
+                        KeyStoreUtil.addJceProvider();
                     } else {
-                        System.out.println("Invalid JCE provider provided!");
+                        System.out.println("Invalid JCE provider provided. The default provider (SUN) will be used.");
                     }
                 } else if ((Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName)) {
                     setProperty(Constants.KEYSTORE_PASSWORD, value, "Invalid KeyStore password provided!");

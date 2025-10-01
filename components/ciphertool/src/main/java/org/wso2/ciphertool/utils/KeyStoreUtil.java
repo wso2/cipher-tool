@@ -16,6 +16,7 @@
 package org.wso2.ciphertool.utils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.wso2.ciphertool.CipherTool;
 import org.wso2.ciphertool.exception.CipherToolException;
 
 import javax.crypto.Cipher;
@@ -41,7 +42,7 @@ public class KeyStoreUtil {
      * Initializes the Cipher
      * @return cipher cipher
      */
-    public static Cipher initializeCipher(String providerName) {
+    public static Cipher initializeCipher() {
         Cipher cipher;
         String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
@@ -59,11 +60,11 @@ public class KeyStoreUtil {
             throw new CipherToolException("KeyStore password can not be null");
         }
 
-        KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType, providerName);
+        KeyStore primaryKeyStore = getKeyStore(keyStoreFile, password, keyType);
         try {
             Certificate certs = primaryKeyStore.getCertificate(keyAlias);
             String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
-            String provider = getPreferredJceProvider(providerName);
+            String provider = getPreferredJceProvider();
             if (cipherTransformation != null) {
                 if (provider != null) {
                     cipher = Cipher.getInstance(cipherTransformation, provider);
@@ -94,11 +95,11 @@ public class KeyStoreUtil {
         return cipher;
     }
 
-    private static KeyStore getKeyStore(String location, String storePassword, String storeType, String providerName) {
+    private static KeyStore getKeyStore(String location, String storePassword, String storeType) {
         KeyStore keyStore;
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(Files.
                 newInputStream(Paths.get(location)))) {
-            String provider = getPreferredJceProvider(providerName);
+            String provider = getPreferredJceProvider();
             if (provider != null) {
                 keyStore = KeyStore.getInstance(storeType, provider);
             } else {
@@ -126,8 +127,8 @@ public class KeyStoreUtil {
         }
     }
 
-    public static void addJceProvider(String providerName) {
-        String jceProvider = getPreferredJceProvider(providerName);
+    public static void addJceProvider() {
+        String jceProvider = getPreferredJceProvider();
         if (StringUtils.isNotEmpty(jceProvider)) {
             if (Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER.equals(jceProvider)) {
                 insertJceProvider(Constants.JCEProviders.BC_FIPS_CLASS_NAME);
@@ -164,7 +165,8 @@ public class KeyStoreUtil {
      *
      * @return the preferred JCE provider
      */
-    private static String getPreferredJceProvider(String provider) {
+    private static String getPreferredJceProvider() {
+        String provider = CipherTool.providerName;
         if (provider != null && (provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER) ||
                 provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER))) {
             return provider;
