@@ -144,18 +144,18 @@ public class KeyStoreUtil {
             Security.insertProviderAt((Provider) Class.forName(jceProviderClassName).
                     getDeclaredConstructor().newInstance(), 1);
         } catch (InstantiationException e) {
-            throw new RuntimeException("Failed to instantiate the class. Ensure it has " +
+            throw new CipherToolException("Failed to instantiate the class. Ensure it has " +
                     "a public no-argument constructor.", e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Illegal access while creating/using the class. " +
+            throw new CipherToolException("Illegal access while creating/using the class. " +
                     "Check visibility modifiers.", e);
         } catch (InvocationTargetException e) {
-            throw new RuntimeException("Constructor or method threw an exception during invocation.", e);
+            throw new CipherToolException("Constructor or method threw an exception during invocation.", e);
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("The expected method or constructor was not found. " +
+            throw new CipherToolException("The expected method or constructor was not found. " +
                     "Verify method signatures.", e);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("The specified class could not be found. Check the " +
+            throw new CipherToolException("The specified class could not be found. Check the " +
                     "fully qualified class name.", e);
         }
     }
