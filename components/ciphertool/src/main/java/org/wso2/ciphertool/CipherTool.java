@@ -26,13 +26,9 @@ import org.wso2.ciphertool.utils.KeyStoreUtil;
 import org.wso2.ciphertool.utils.Utils;
 import org.xml.sax.SAXException;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -42,7 +38,6 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import java.io.*;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -52,8 +47,9 @@ import static org.wso2.ciphertool.utils.Utils.getSecuredDocumentBuilder;
 
 public class CipherTool {
 
-    private static Map<String, String> configFileXpathMap = new HashMap<String, String>();
-    private static Map<String, String> aliasPasswordMap = new HashMap<String, String>();
+    private static final Map<String, String> configFileXpathMap = new HashMap<String, String>();
+    private static final Map<String, String> aliasPasswordMap = new HashMap<String, String>();
+    private static String providerName = null;
 
     public static void main(String[] args) {
 
@@ -106,19 +102,30 @@ public class CipherTool {
                     propertyName = property.substring(0, index);
                     value = property.substring(index + 1);
                 }
-                if ((Constants.CONFIGURE).equals(propertyName)) {
+                if ((Constants.CONFIGURE).equalsIgnoreCase(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if ((Constants.CHANGE).equals(propertyName)) {
+                } else if ((Constants.CHANGE).equalsIgnoreCase(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
+                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equalsIgnoreCase(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
                         System.out.println("Invalid transformation algorithm provided. The default transformation algorithm (RSA) will be used");
                     }
-                } else if (propertyName.length() >= 8 && (Constants.CONSOLE_PASSWORD_PARAM).equals(propertyName.substring(0, 8))) {
-                    System.setProperty(Constants.KEYSTORE_PASSWORD, property.substring(9));
-                } else {
+                } else if (propertyName.equalsIgnoreCase(Constants.JCEProviders.SECURITY_JCE_PROVIDER)) {
+                    if (StringUtils.isNotEmpty(value) &&
+                            (value.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER) ||
+                                    value.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER))) {
+                        providerName = value;
+                        KeyStoreUtil.addJceProvider();
+                    } else {
+                        System.out.println("Invalid JCE provider provided. The default provider (SUN) will be used.");
+                    }
+                } else if ((Constants.CONSOLE_PASSWORD_PARAM).equalsIgnoreCase(propertyName)) {
+                    if (StringUtils.isNotEmpty(value)) {
+                        System.setProperty(Constants.KEYSTORE_PASSWORD, value);
+                    }
+                }  else {
                     System.out.println("This option is not defined!");
                     System.exit(-1);
                 }
@@ -400,5 +407,9 @@ public class CipherTool {
         } catch (IOException e) {
             throw new CipherToolException("Error while writing encrypted values into deployment file", e);
         }
+    }
+
+    public static String getProviderName() {
+        return providerName;
     }
 }

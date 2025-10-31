@@ -274,10 +274,6 @@ public class Utils {
 
                 keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder);
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
-                String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
-
-                System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
-                System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
 
                 if (hasConfigInRepository) {
 	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
@@ -349,6 +345,10 @@ public class Utils {
         System.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, cipherTextPropFile);
         System.setProperty(Constants.CIPHER_TEXT_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherTextPropFile));
         System.setProperty(Constants.CIPHER_TOOL_PROPERTY_FILE_PROPERTY, getConfigFilePath(cipherToolPropFile));
+
+        String keyStoreName = ((Utils.isPrimaryKeyStore()) ? "Primary" : "Internal");
+        System.out.println("\nEncrypting using " + keyStoreName + " KeyStore.");
+        System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
     }
 
     /**
