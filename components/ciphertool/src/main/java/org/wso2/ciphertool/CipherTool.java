@@ -384,7 +384,10 @@ public class CipherTool {
                             if (stringTokenizer.hasMoreTokens()) {
                                 String key = stringTokenizer.nextToken();
                                 String value = encryptedKeyMap.get(key.trim());
-                                line = key.concat("= \"").concat(value).concat("\"");
+                                // Fix: Check if value exists before replacing
+                                if (value != null) {
+                                    line = key.concat("= \"").concat(value).concat("\"");
+                                }
                             }
                         }
                     } else {
