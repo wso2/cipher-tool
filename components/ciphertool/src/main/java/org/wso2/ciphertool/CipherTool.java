@@ -125,7 +125,7 @@ public class CipherTool {
                     if (StringUtils.isNotEmpty(value)) {
                         System.setProperty(Constants.KEYSTORE_PASSWORD, value);
                     }
-                }  else {
+                } else {
                     System.out.println("This option is not defined!");
                     System.exit(-1);
                 }
@@ -409,6 +409,11 @@ public class CipherTool {
         }
     }
 
+    /**
+     * Returns the configured JCE provider name.
+     *
+     * @return the configured JCE provider name ("BC", "BCFIPS", or null)
+     */
     public static String getProviderName() {
         return providerName;
     }

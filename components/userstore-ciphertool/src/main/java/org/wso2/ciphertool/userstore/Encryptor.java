@@ -47,7 +47,7 @@ public class Encryptor {
     public static final String CRYPTO_PROVIDER_BC = "BC";
     private static final String DEFAULT_CRYPTO_ALGORITHM = "RSA";
     private static final String DIGEST_ALGORITHM = "SHA-1";
-    public static final String BC_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
+    private static final String BC_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
 
     public String encrypt(String cleartext, CryptoContext cryptoContext) throws Exception {
 

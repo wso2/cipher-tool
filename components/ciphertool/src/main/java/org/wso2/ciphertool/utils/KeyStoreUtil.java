@@ -125,16 +125,16 @@ public class KeyStoreUtil {
             throw new CipherToolException("Failed to instantiate the class. Ensure it has " +
                     "a public no-argument constructor.", e);
         } catch (IllegalAccessException e) {
-            throw new CipherToolException("Illegal access while creating/using the class. " +
-                    "Check visibility modifiers.", e);
+            throw new CipherToolException("Failed to access the class constructor. Ensure the class has a " +
+                    "public no-argument constructor.", e);
         } catch (InvocationTargetException e) {
             throw new CipherToolException("Constructor or method threw an exception during invocation.", e);
         } catch (NoSuchMethodException e) {
-            throw new CipherToolException("The expected method or constructor was not found. " +
-                    "Verify method signatures.", e);
+            throw new CipherToolException("No public no-argument constructor found. Ensure the class has a " +
+                    "public default constructor.", e);
         } catch (ClassNotFoundException e) {
-            throw new CipherToolException("The specified class could not be found. Check the " +
-                    "fully qualified class name.", e);
+            throw new CipherToolException("JCE provider class not found. Ensure the Bouncy Castle library" +
+                    " is on the classpath.", e);
         }
     }
 
