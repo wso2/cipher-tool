@@ -109,10 +109,10 @@ public class KeyStoreUtil {
     public static void addJceProvider() {
         String jceProvider = getPreferredJceProvider();
         if (StringUtils.isNotEmpty(jceProvider)) {
-            if (Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER.equals(jceProvider)) {
+            if (Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER.equalsIgnoreCase(jceProvider)) {
                 insertJceProvider(Constants.JCEProviders.BC_FIPS_CLASS_NAME);
                 System.setProperty(Constants.JCEProviders.FIPS_APPROVED_ONLY, "true");
-            } else if (Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER.equals(jceProvider)) {
+            } else if (Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER.equalsIgnoreCase(jceProvider)) {
                 insertJceProvider(Constants.JCEProviders.BC_CLASS_NAME);
             }
         }
