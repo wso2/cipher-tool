@@ -15,6 +15,8 @@
  */
 package org.wso2.ciphertool.utils;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.ciphertool.CipherTool;
 import org.wso2.ciphertool.exception.CipherToolException;
 
 import javax.crypto.Cipher;
@@ -22,10 +24,13 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 
@@ -100,5 +105,50 @@ public class KeyStoreUtil {
                 }
             }
         }
+    }
+    public static void addJceProvider() {
+        String jceProvider = getPreferredJceProvider();
+        if (StringUtils.isNotEmpty(jceProvider)) {
+            if (Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER.equalsIgnoreCase(jceProvider)) {
+                insertJceProvider(Constants.JCEProviders.BC_FIPS_CLASS_NAME);
+                System.setProperty(Constants.JCEProviders.FIPS_APPROVED_ONLY, "true");
+            } else if (Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER.equalsIgnoreCase(jceProvider)) {
+                insertJceProvider(Constants.JCEProviders.BC_CLASS_NAME);
+            }
+        }
+    }
+    private static void insertJceProvider(String jceProvider) {
+        try {
+            Security.insertProviderAt((Provider) Class.forName(jceProvider).
+                    getDeclaredConstructor().newInstance(), 1);
+        } catch (InstantiationException e) {
+            throw new CipherToolException("Failed to instantiate the class. Ensure it has " +
+                    "a public no-argument constructor.", e);
+        } catch (IllegalAccessException e) {
+            throw new CipherToolException("Failed to access the class constructor. Ensure the class has a " +
+                    "public no-argument constructor.", e);
+        } catch (InvocationTargetException e) {
+            throw new CipherToolException("Constructor or method threw an exception during invocation.", e);
+        } catch (NoSuchMethodException e) {
+            throw new CipherToolException("No public no-argument constructor found. Ensure the class has a " +
+                    "public default constructor.", e);
+        } catch (ClassNotFoundException e) {
+            throw new CipherToolException("JCE provider class not found. Ensure the Bouncy Castle library" +
+                    " is on the classpath.", e);
+        }
+    }
+
+    /**
+     * Get the preferred JCE provider.
+     *
+     * @return the preferred JCE provider
+     */
+    private static String getPreferredJceProvider() {
+        String provider = CipherTool.getProviderName();
+        if (provider != null && (provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_FIPS_PROVIDER) ||
+                provider.equalsIgnoreCase(Constants.JCEProviders.BOUNCY_CASTLE_PROVIDER))) {
+            return provider;
+        }
+        return null;
     }
 }
