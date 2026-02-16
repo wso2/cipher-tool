@@ -155,16 +155,15 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.CHANGE).equalsIgnoreCase(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equalsIgnoreCase(propertyName)) {
-                } else if ((Constants.SYMMETRIC).equals(propertyName)) {
+                } else if ((Constants.SYMMETRIC).equalsIgnoreCase(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (Constants.ROTATE.equals(propertyName)) {
+                } else if (Constants.ROTATE.equalsIgnoreCase(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                } else if (Constants.OLD_KEY_ALIAS.equals(propertyName)) {
+                } else if (Constants.OLD_KEY_ALIAS.equalsIgnoreCase(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.OLD_KEY_ALIAS, value);
                     }
-                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
+                } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equalsIgnoreCase(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
                     } else {
