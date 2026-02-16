@@ -23,9 +23,12 @@ public class Constants {
     public static final String KEYSTORE_PASSWORD = "keystore.password";
     public static final String CONFIGURE = "configure";
     public static final String CHANGE = "change";
+    public static final String ROTATE = "rotate";
     public static final String CARBON_HOME = "carbon.home";
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
+    public static final String SYMMETRIC = "symmetric";
+    public static final String OLD_KEY_ALIAS = "old.alias";
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
     public static final String SECURITY_DIR = "security";
@@ -56,9 +59,15 @@ public class Constants {
     public static final String KEY_VALUE_SEPERATOR = "=";
     // This property will be set to true when external applications need to override the default values
     public static final String SET_EXTERNAL_SYSTEM_PROPERTY = "external.system.properties";
+    public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
+    public static final String RSA = "RSA";
+    public static final String CIPHERTEXT = "cipherText";
+    public static final String IV = "iv";
+    public static final String INTERNAL = "Internal";
+    public static final String PRIMARY = "Primary";
 
-    public static final String SYS_PROPERTY_PLACEHOLDER_PREFIX = "$sys{"; 
-    public static final String ENV_VAR_PLACEHOLDER_PREFIX = "$env{"; 
+    public static final String SYS_PROPERTY_PLACEHOLDER_PREFIX = "$sys{";
+    public static final String ENV_VAR_PLACEHOLDER_PREFIX = "$env{";
     public static final String PLACEHOLDER_SUFFIX = "}";
 
     public static final class PrimaryKeyStore {
@@ -88,6 +97,8 @@ public class Constants {
         public static final String CARBON_SECRET_PROVIDER = "carbon.secretProvider";
         public static final String SECRET_FILE_PROVIDER = "secretRepositories.file.provider";
         public static final String SECRET_FILE_ALGORITHM= "secretRepositories.file.algorithm";
+        public static final String SECRET_FILE_ENCRYPTION_MODE=
+                "secretRepositories.file.encryptionMode";
         public static final String SECRET_FILE_BASE_PROVIDER_CLASS =
                 "org.wso2.securevault.secret.repository.FileBaseSecretRepositoryProvider";
         public static final String SECRET_FILE_LOCATION = "secretRepositories.file.location";
@@ -109,5 +120,26 @@ public class Constants {
         public static final String BC_FIPS_CLASS_NAME = "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider";
         public static final String BC_CLASS_NAME = "org.bouncycastle.jce.provider.BouncyCastleProvider";
         public static final String FIPS_APPROVED_ONLY = "org.bouncycastle.fips.approved_only";
+    }
+
+    public enum Error {
+
+        GET_KEY_ERROR_MESSAGE("Error retrieving key associated with alias : %s"),
+        CIPHER_INIT_ERROR_MESSAGE("Error initializing Cipher."),
+        INVALID_SECRET_ERROR_MESSAGE("The provided secret key is invalid."),
+        JSON_VALUE_NOT_FOUND("Value \"%s\" not found in JSON"),
+        TOML_NOT_FOUND("Deployment file %s not found"),
+        PARAMETER_REQUIRED_FOR_ROTATE_MODE("%s parameter is required for key rotate mode mode."),
+        INVALID_JSON("Invalid encrypted text: JSON parsing failed.");
+
+        private final String messageTemplate;
+
+        Error(String messageTemplate) {
+            this.messageTemplate = messageTemplate;
+        }
+
+        public String getMessage(Object... args) {
+            return String.format(this.messageTemplate, args);
+        }
     }
 }
