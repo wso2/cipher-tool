@@ -27,6 +27,20 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import java.io.Console;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -35,15 +49,11 @@ import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -197,14 +207,17 @@ public class Utils {
         String keyStoreFile = System.getProperty(Constants.KEY_LOCATION_PROPERTY);
         String keyType = System.getProperty(Constants.KEY_TYPE_PROPERTY);
         String aliasName = System.getProperty(Constants.KEY_ALIAS_PROPERTY);
-        String enable = System.getProperty(Constants.SecureVault.ENABLE_SEC_VAULT, "true");
+        String enable = System.getProperty(Constants.SecureVault.ENABLE_SEC_VAULT, Constants.TRUE);
 
         properties.setProperty(Constants.SecureVault.ENABLE_SEC_VAULT, enable);
         properties.setProperty(Constants.SecureVault.CARBON_SECRET_PROVIDER,
                 Constants.SecureVault.SECRET_PROVIDER_CLASS);
         properties.setProperty(Constants.SecureVault.SECRET_REPOSITORIES, "file");
         properties.setProperty(Constants.SecureVault.SECRET_FILE_PROVIDER,
-                               Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
+                Constants.SecureVault.SECRET_FILE_BASE_PROVIDER_CLASS);
+        if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
+            properties.setProperty(Constants.SecureVault.SECRET_FILE_ENCRYPTION_MODE, Constants.SYMMETRIC);
+        }
         properties.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, System.getProperty(
                 Constants.SecureVault.SECRET_FILE_LOCATION));
 
@@ -274,6 +287,14 @@ public class Utils {
 
                 keyStoreFile = resolveKeyStorePath(keyStoreFile, homeFolder);
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
+                String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
+
+                if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
+                    System.out.println("\nSymmetric encryption using " + keyStoreName + " KeyStore.");
+                } else {
+                    System.out.println("\nAsymmetric encryption using " + keyStoreName + " KeyStore.");
+                }
+                System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
 
                 if (hasConfigInRepository) {
 	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
@@ -403,7 +424,7 @@ public class Utils {
     public static String doEncryption(Cipher cipher, String plainTextPwd) {
         String encodedValue;
         try {
-            byte[] encryptedPassword = cipher.doFinal(plainTextPwd.getBytes(Charset.forName(Constants.UTF8)));
+            byte[] encryptedPassword = cipher.doFinal(plainTextPwd.getBytes(StandardCharsets.UTF_8));
             encodedValue = DatatypeConverter.printBase64Binary(encryptedPassword);
         } catch (BadPaddingException e) {
             throw new CipherToolException("Error encrypting password ", e);
@@ -411,6 +432,25 @@ public class Utils {
             throw new CipherToolException("Error encrypting password ", e);
         }
         System.out.println("\nEncryption is done Successfully\n");
+        return encodedValue;
+    }
+
+    /**
+     * Decrypt the cipher text password.
+     *
+     * @param cipher        Initialized cipher object.
+     * @param cipherTextPwd Encrypted password.
+     * @return Plain text password.
+     */
+    public static String doDecryption(Cipher cipher, byte[] cipherTextPwd) {
+        String encodedValue;
+        try {
+            byte[] encryptedPassword = cipher.doFinal(cipherTextPwd);
+            encodedValue = new String(encryptedPassword);
+        } catch (BadPaddingException | IllegalBlockSizeException e) {
+            throw new CipherToolException("Error decrypting password ", e);
+        }
+        System.out.println("\nDecryption is done Successfully\n");
         return encodedValue;
     }
 
@@ -483,6 +523,20 @@ public class Utils {
         String unEncryptedValue = StringUtils.substring(value, value.indexOf(Constants.SECTION_PREFIX) + 1,
                 value.lastIndexOf(Constants.SECTION_SUFFIX));
         return StringUtils.isNotEmpty(unEncryptedValue) ? unEncryptedValue : null;
+    }
+
+    /**
+     * Returns value from [secrets] section in deployment toml file, if encrypted.
+     *
+     * @param value The input string to be checked
+     * @return The input string if it does not contain '[' or ']' otherwise, returns null.
+     */
+    public static String getEncryptedValue(String value) {
+
+        if (value.contains(Constants.SECTION_PREFIX) && value.contains(Constants.SECTION_SUFFIX)) {
+            return null;
+        }
+        return StringUtils.isNotEmpty(value) ? value : null;
     }
 
     /**
