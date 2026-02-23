@@ -104,12 +104,14 @@ public class CipherTool {
             Utils.writeToSecureConfPropertyFile();
         } else if (Constants.TRUE.equals(System.getProperty(Constants.ROTATE))) {
             String oldAlias = System.getProperty(Constants.OLD_KEY_ALIAS);
-            String oldKey = System.getProperty(Constants.OLD_KEY);
+            String oldKey = null;
             boolean isKeyBasedEncryption = Constants.TRUE.equals(
                     System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE));
-            if (isKeyBasedEncryption && StringUtils.isBlank(oldKey)) {
-                throw new CipherToolException(
-                        Constants.Error.PARAMETER_REQUIRED_FOR_ROTATE_MODE.getMessage(Constants.OLD_KEY));
+            if (isKeyBasedEncryption) {
+                oldKey = Utils.getValueFromConsole("Enter the old encryption key for rotation: ", true);
+                if (StringUtils.isBlank(oldKey)) {
+                    throw new CipherToolException("Old encryption key is required for key-based rotation mode");
+                }
             }
             if (!isKeyBasedEncryption && StringUtils.isBlank(oldAlias)) {
                 throw new CipherToolException(
@@ -119,10 +121,6 @@ public class CipherTool {
             if (isKeyBasedEncryption) {
                 oldCipherMode = new SymmetricCipher(keyStore, oldKey);
             } else {
-                if (StringUtils.isNotBlank(oldKey)) {
-                    throw new CipherToolException(
-                            "In keystore-based rotate mode, use -Dold.alias instead of -Dold.key.");
-                }
                 if (keyStore == null) {
                     keyStore = KeyStoreUtil.getKeyStore();
                 }
@@ -192,10 +190,6 @@ public class CipherTool {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.OLD_KEY_ALIAS, value);
                     }
-                } else if (Constants.OLD_KEY.equals(propertyName)) {
-                    if (!StringUtils.isBlank(value)) {
-                        System.setProperty(Constants.OLD_KEY, value);
-                    }
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY, value);
@@ -231,16 +225,17 @@ public class CipherTool {
         System.out.println("\t-Dchange\t\t This option would allow user to change the specific password which has " +
                            "been secured\n");
         System.out.println("\t-Drotate\t\t This option is used to rotate the existing encrypted values to a new secret " +
-                "alias or encryption key. Requires providing the old alias (keystore mode) or the old encryption key " +
-                "(key-based mode).\n");
+                "alias or encryption key. Requires providing the old alias (keystore mode) via -Dold.alias parameter. " +
+                "In key-based mode, the old encryption key will be prompted securely at runtime.\n");
         System.out.println("\t-Dsymmetric\t\t This option allows the user to use symmetric encryption for creating " +
                 "encrypted values. It can be used with -Dconfigure, -Dchange, or -Drotate.\n");
         System.out.println("\t-Dkey.based.encryption\t\t This option enables key-based symmetric encryption by allowing " +
                 "the user to provide a direct encryption key instead of a keystore. It must be used together with " +
                 "-Dsymmetric.\n");
-        System.out.println("\t-Dold.alias=<Old secret alias>\t This specifies the old alias used in rotate mode.");
-        System.out.println("\t-Dold.key=<Old encryption key>\t This specifies the old encryption key used in rotate " +
-                "mode when key-based encryption is enabled.");
+        System.out.println("\t-Dold.alias=<Old secret alias>\t This specifies the old alias used in rotate mode " +
+                "(keystore-based encryption only).\n");
+        System.out.println("\t*** SECURITY NOTE ***: For key-based rotation mode, the old encryption key will be " +
+                "prompted securely via console input.\n");
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
                            "command line argument. NOTE: Providing the password in command line arguments list is " +
                            "not recommended.\n");

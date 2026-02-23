@@ -204,16 +204,16 @@ public class SymmetricCipher implements CipherMode {
         if (StringUtils.isBlank(encryptionKey)) {
             throw new CipherToolException("Encryption key cannot be null or empty");
         }
+        if (!this.algorithm.startsWith(Constants.AES)) {
+            throw new CipherToolException(
+                    "Key-based encryption is only supported for AES transformations. Configured transformation: "
+                            + this.algorithm);
+        }
         byte[] keyBytes;
         if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() % 2 == 0) {
             keyBytes = hexStringToByteArray(encryptionKey);
         } else {
             keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
-        }
-        if (!this.algorithm.startsWith(Constants.AES)) {
-            throw new CipherToolException(
-                    "Key-based encryption is only supported for AES transformations. Configured transformation: "
-                            + this.algorithm);
         }
         if (keyBytes.length != AES_256_KEY_SIZE) {
             throw new CipherToolException(
@@ -232,8 +232,14 @@ public class SymmetricCipher implements CipherMode {
         int len = hexString.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4) + Character.digit(
-                    hexString.charAt(i + 1), 16));
+            char highChar = hexString.charAt(i);
+            char lowChar = hexString.charAt(i + 1);
+            int high = Character.digit(highChar, 16);
+            int low = Character.digit(lowChar, 16);
+            if (high == -1 || low == -1) {
+                throw new CipherToolException("Invalid hexadecimal character found in encryption key: " + hexString);
+            }
+            data[i / 2] = (byte) ((high << 4) + low);
         }
         return data;
     }
