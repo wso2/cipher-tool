@@ -77,11 +77,18 @@ public class CipherTool {
         initialize(args);
         KeyStore keyStore = null;
         CipherMode cipherMode;
-        if (Constants.TRUE.equals(System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE))) {
-            cipherMode = new SymmetricCipher(keyStore, null);
+        boolean isRotateMode = Constants.TRUE.equals(System.getProperty(Constants.ROTATE));
+        boolean isKeyBasedMode = Constants.TRUE.equals(System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE));
+        
+        if (!isRotateMode || !isKeyBasedMode) {
+            if (isKeyBasedMode) {
+                cipherMode = new SymmetricCipher(keyStore, null);
+            } else {
+                keyStore = KeyStoreUtil.getKeyStore();
+                cipherMode = CipherFactory.createCipher(keyStore);
+            }
         } else {
-            keyStore = KeyStoreUtil.getKeyStore();
-            cipherMode = CipherFactory.createCipher(keyStore);
+            cipherMode = null;
         }
         if (Constants.TRUE.equals(System.getProperty(Constants.CONFIGURE))) {
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
@@ -112,6 +119,11 @@ public class CipherTool {
                 if (StringUtils.isBlank(oldKey)) {
                     throw new CipherToolException("Old encryption key is required for key-based rotation mode");
                 }
+                String newKey = Utils.getValueFromConsole("Enter the new encryption key for rotation: ", true);
+                if (StringUtils.isBlank(newKey)) {
+                    throw new CipherToolException("New encryption key is required for key-based rotation mode");
+                }
+                cipherMode = new SymmetricCipher(keyStore, newKey);
             }
             if (!isKeyBasedEncryption && StringUtils.isBlank(oldAlias)) {
                 throw new CipherToolException(
