@@ -183,6 +183,9 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
+                    if (System.getProperty(Constants.SYMMETRIC) == null) {
+                        System.setProperty(Constants.SYMMETRIC, Constants.TRUE);
+                    }
                 } else if (Constants.ROTATE.equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if (Constants.OLD_KEY_ALIAS.equals(propertyName)) {

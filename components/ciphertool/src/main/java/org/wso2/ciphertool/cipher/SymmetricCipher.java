@@ -210,11 +210,14 @@ public class SymmetricCipher implements CipherMode {
         } else {
             keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
         }
-        if (this.algorithm.startsWith(Constants.AES)) {
-            if (keyBytes.length != AES_256_KEY_SIZE) {
-                throw new CipherToolException(
-                        "Invalid AES key length: " + keyBytes.length + " bytes. AES-256 requires a 32-byte (256-bit) key.");
-            }
+        if (!this.algorithm.startsWith(Constants.AES)) {
+            throw new CipherToolException(
+                    "Key-based encryption is only supported for AES transformations. Configured transformation: "
+                            + this.algorithm);
+        }
+        if (keyBytes.length != AES_256_KEY_SIZE) {
+            throw new CipherToolException(
+                    "Invalid AES key length: " + keyBytes.length + " bytes. AES-256 requires a 32-byte (256-bit) key.");
         }
         return new SecretKeySpec(keyBytes, Constants.AES);
     }
