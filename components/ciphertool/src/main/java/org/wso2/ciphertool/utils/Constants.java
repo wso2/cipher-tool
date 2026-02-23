@@ -29,7 +29,6 @@ public class Constants {
     public static final String TRUE = "true";
     public static final String SYMMETRIC = "symmetric";
     public static final String KEY_BASED_SYMMETRIC_ENCRYPTION_MODE = "key.based.encryption";
-    public static final String OLD_KEY = "old.key";
     public static final String OLD_KEY_ALIAS = "old.alias";
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";

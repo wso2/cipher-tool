@@ -237,7 +237,7 @@ public class SymmetricCipher implements CipherMode {
             int high = Character.digit(highChar, 16);
             int low = Character.digit(lowChar, 16);
             if (high == -1 || low == -1) {
-                throw new CipherToolException("Invalid hexadecimal character found in encryption key: " + hexString);
+                throw new CipherToolException("Invalid hexadecimal character found in encryption key at position " + i);
             }
             data[i / 2] = (byte) ((high << 4) + low);
         }
