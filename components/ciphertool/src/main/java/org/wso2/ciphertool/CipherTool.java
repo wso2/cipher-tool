@@ -112,9 +112,7 @@ public class CipherTool {
         } else if (Constants.TRUE.equals(System.getProperty(Constants.ROTATE))) {
             String oldAlias = System.getProperty(Constants.OLD_KEY_ALIAS);
             String oldKey = null;
-            boolean isKeyBasedEncryption = Constants.TRUE.equals(
-                    System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE));
-            if (isKeyBasedEncryption) {
+            if (isKeyBasedMode) {
                 oldKey = Utils.getValueFromConsole("Enter the old encryption key for rotation: ", true);
                 if (StringUtils.isBlank(oldKey)) {
                     throw new CipherToolException("Old encryption key is required for key-based rotation mode");
@@ -125,12 +123,12 @@ public class CipherTool {
                 }
                 cipherMode = new SymmetricCipher(keyStore, newKey);
             }
-            if (!isKeyBasedEncryption && StringUtils.isBlank(oldAlias)) {
+            if (!isKeyBasedMode && StringUtils.isBlank(oldAlias)) {
                 throw new CipherToolException(
                         Constants.Error.PARAMETER_REQUIRED_FOR_ROTATE_MODE.getMessage(Constants.OLD_KEY_ALIAS));
             }
             CipherMode oldCipherMode;
-            if (isKeyBasedEncryption) {
+            if (isKeyBasedMode) {
                 oldCipherMode = new SymmetricCipher(keyStore, oldKey);
             } else {
                 if (keyStore == null) {
