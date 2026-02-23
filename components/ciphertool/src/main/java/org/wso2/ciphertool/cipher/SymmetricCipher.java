@@ -210,7 +210,10 @@ public class SymmetricCipher implements CipherMode {
                             + this.algorithm);
         }
         byte[] keyBytes;
-        if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() % 2 == 0) {
+        if (encryptionKey.matches(Constants.HEX_PATTERN)) {
+            if (encryptionKey.length() % 2 != 0) {
+                throw new CipherToolException("Invalid hexadecimal key format.");
+            }
             keyBytes = hexStringToByteArray(encryptionKey);
         } else {
             keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
