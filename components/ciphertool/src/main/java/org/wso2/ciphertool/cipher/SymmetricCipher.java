@@ -206,11 +206,7 @@ public class SymmetricCipher implements CipherMode {
         }
         byte[] keyBytes;
         if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() % 2 == 0) {
-            try {
-                keyBytes = hexStringToByteArray(encryptionKey);
-            } catch (Exception e) {
-                keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
-            }
+            keyBytes = hexStringToByteArray(encryptionKey);
         } else {
             keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
         }

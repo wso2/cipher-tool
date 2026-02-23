@@ -116,9 +116,13 @@ public class CipherTool {
                         Constants.Error.PARAMETER_REQUIRED_FOR_ROTATE_MODE.getMessage(Constants.OLD_KEY_ALIAS));
             }
             CipherMode oldCipherMode;
-            if (StringUtils.isNotBlank(oldKey)) {
+            if (isKeyBasedEncryption) {
                 oldCipherMode = new SymmetricCipher(keyStore, oldKey);
             } else {
+                if (StringUtils.isNotBlank(oldKey)) {
+                    throw new CipherToolException(
+                            "In keystore-based rotate mode, use -Dold.alias instead of -Dold.key.");
+                }
                 if (keyStore == null) {
                     keyStore = KeyStoreUtil.getKeyStore();
                 }
