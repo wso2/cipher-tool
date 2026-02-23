@@ -28,6 +28,8 @@ public class Constants {
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
     public static final String SYMMETRIC = "symmetric";
+    public static final String KEY_BASED_SYMMETRIC_ENCRYPTION_MODE = "key.based.encryption";
+    public static final String OLD_KEY = "old.key";
     public static final String OLD_KEY_ALIAS = "old.alias";
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
@@ -72,11 +74,14 @@ public class Constants {
     public static final String SECTION_SUFFIX = "]";
     public static final String KEY_VALUE_SEPERATOR = "=";
     public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
+    public static final String AES = "AES";
     public static final String RSA = "RSA";
     public static final String CIPHERTEXT = "cipherText";
     public static final String IV = "iv";
     public static final String INTERNAL = "Internal";
     public static final String PRIMARY = "Primary";
+
+    public static final String HEX_PATTERN = "^[0-9a-fA-F]+$";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
@@ -119,6 +124,10 @@ public class Constants {
         public static final String KEYSTORE_KEY_PASSWORD = "keystore.identity.key.password";
         public static final String IDENTITY_KEY_PASSWORD = "identity.key.password";
         public static final String KEYSTORE_KEY_SECRET_PROVIDER = "keystore.identity.key.secretProvider";
+        public static final String KEY_BASED_SYMMETRIC_ENCRYPTION = "key.based.symmetric.encryption";
+        public static final String KEY_BASED_SECRET_PROVIDER = "key.based.secretProvider";
+        public static final String KEY_BASED_PASSWORD = "key.based.password";
+        public static final String ENCRYPTION_KEY_PASSWORD = "encryption.key.password";
     }
 
     public enum Error {

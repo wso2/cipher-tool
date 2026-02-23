@@ -42,6 +42,7 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Provides methods for encryption and decryption using symmetric key algorithms.
@@ -50,26 +51,33 @@ public class SymmetricCipher implements CipherMode {
 
     private static final int GCM_IV_LENGTH = 128;
     private static final int GCM_TAG_LENGTH = 128;
+    private static final int AES_256_KEY_SIZE = 32;
     private final Key secretKey;
     private final Cipher cipher;
     private final String algorithm;
 
-    public SymmetricCipher(KeyStore keyStore, String keyAlias) {
+    public SymmetricCipher(KeyStore keyStore, String keyOrAlias) {
 
         String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
         this.algorithm = StringUtils.isNotBlank(cipherTransformation)
                 ? cipherTransformation : Constants.AES_GCM_NO_PADDING;
-        String password = KeyStoreUtil.getKeystorePassword();
-        try {
-            this.secretKey = keyStore.getKey(keyAlias, password.toCharArray());
-            if (this.secretKey == null) {
-                throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyAlias));
+        if (Constants.TRUE.equals(System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE))) {
+            this.secretKey = createSecretKeyFromInput(keyOrAlias);
+        } else {
+            String password = KeyStoreUtil.getKeystorePassword();
+            try {
+                this.secretKey = keyStore.getKey(keyOrAlias, password.toCharArray());
+                if (this.secretKey == null) {
+                    throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyOrAlias));
+                }
+            } catch (KeyStoreException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
+                throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyOrAlias), e);
             }
+        }
+        try {
             this.cipher = Cipher.getInstance(this.algorithm);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
-        } catch (KeyStoreException | UnrecoverableKeyException e) {
-            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyAlias), e);
         }
     }
 
@@ -179,6 +187,57 @@ public class SymmetricCipher implements CipherMode {
         return iv;
     }
 
+    /**
+     * Creates a {@link SecretKeySpec} from the provided encryption key. If the key is null or blank, it prompts the
+     * user to enter a key via the console. The key can be provided in hexadecimal or plain text format and is validated
+     * for AES-256 key length requirements.
+     *
+     * @param encryptionKey the encryption key (plain text or hexadecimal)
+     * @return the generated secret key specification
+     * @throws CipherToolException if the key is null, empty, or invalid
+     */
+    private SecretKeySpec createSecretKeyFromInput(String encryptionKey) {
+
+        if (StringUtils.isBlank(encryptionKey)) {
+            encryptionKey = Utils.getValueFromConsole("Please Enter Encryption Key: ", true);
+        }
+        if (StringUtils.isBlank(encryptionKey)) {
+            throw new CipherToolException("Encryption key cannot be null or empty");
+        }
+        byte[] keyBytes;
+        if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() % 2 == 0) {
+            try {
+                keyBytes = hexStringToByteArray(encryptionKey);
+            } catch (Exception e) {
+                keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
+            }
+        } else {
+            keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
+        }
+        if (this.algorithm.startsWith(Constants.AES)) {
+            if (keyBytes.length != AES_256_KEY_SIZE) {
+                throw new CipherToolException(
+                        "Invalid AES key length: " + keyBytes.length + " bytes. AES-256 requires a 32-byte (256-bit) key.");
+            }
+        }
+        return new SecretKeySpec(keyBytes, Constants.AES);
+    }
+
+    /**
+     * Converts a hexadecimal string to byte array.
+     *
+     * @param hexString The hexadecimal string to convert.
+     * @return The byte array representation of the hex string.
+     */
+    private byte[] hexStringToByteArray(String hexString) {
+        int len = hexString.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4) + Character.digit(
+                    hexString.charAt(i + 1), 16));
+        }
+        return data;
+    }
 
     /**
      * Creates a self-contained ciphertext with GCM mode.

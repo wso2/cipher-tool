@@ -75,8 +75,14 @@ public class CipherTool {
     public static void main(String[] args) {
 
         initialize(args);
-        KeyStore keyStore = KeyStoreUtil.getKeyStore();
-        CipherMode cipherMode = CipherFactory.createCipher(keyStore);
+        KeyStore keyStore = null;
+        CipherMode cipherMode;
+        if (Constants.TRUE.equals(System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE))) {
+            cipherMode = new SymmetricCipher(keyStore, null);
+        } else {
+            keyStore = KeyStoreUtil.getKeyStore();
+            cipherMode = CipherFactory.createCipher(keyStore);
+        }
         if (Constants.TRUE.equals(System.getProperty(Constants.CONFIGURE))) {
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
             if (deploymentTomlFile.exists()) {
@@ -97,13 +103,29 @@ public class CipherTool {
             }
             Utils.writeToSecureConfPropertyFile();
         } else if (Constants.TRUE.equals(System.getProperty(Constants.ROTATE))) {
-            String oldAlias  = System.getProperty(Constants.OLD_KEY_ALIAS);
-            if (StringUtils.isBlank(oldAlias)) {
+            String oldAlias = System.getProperty(Constants.OLD_KEY_ALIAS);
+            String oldKey = System.getProperty(Constants.OLD_KEY);
+            boolean isKeyBasedEncryption = Constants.TRUE.equals(
+                    System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE));
+            if (isKeyBasedEncryption && StringUtils.isBlank(oldKey)) {
+                throw new CipherToolException(
+                        Constants.Error.PARAMETER_REQUIRED_FOR_ROTATE_MODE.getMessage(Constants.OLD_KEY));
+            }
+            if (!isKeyBasedEncryption && StringUtils.isBlank(oldAlias)) {
                 throw new CipherToolException(
                         Constants.Error.PARAMETER_REQUIRED_FOR_ROTATE_MODE.getMessage(Constants.OLD_KEY_ALIAS));
             }
-            CipherMode oldCipherMode = isSymmetricKey(oldAlias, keyStore)
-                    ? new SymmetricCipher(keyStore, oldAlias) : new AsymmetricCipher(keyStore, oldAlias);
+            CipherMode oldCipherMode;
+            if (StringUtils.isNotBlank(oldKey)) {
+                oldCipherMode = new SymmetricCipher(keyStore, oldKey);
+            } else {
+                if (keyStore == null) {
+                    keyStore = KeyStoreUtil.getKeyStore();
+                }
+                oldCipherMode = isSymmetricKey(oldAlias, keyStore) ?
+                        new SymmetricCipher(keyStore, oldAlias) :
+                        new AsymmetricCipher(keyStore, oldAlias);
+            }
             File deploymentTomlFile = new File(Utils.getDeploymentFilePath());
             if (deploymentTomlFile.exists()) {
                 Map<String, String> secretMap = Utils.getSecreteFromConfiguration(Utils.getDeploymentFilePath());
@@ -155,11 +177,17 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.SYMMETRIC).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
+                } else if ((Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE).equals(propertyName)) {
+                    System.setProperty(property, Constants.TRUE);
                 } else if (Constants.ROTATE.equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if (Constants.OLD_KEY_ALIAS.equals(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
                         System.setProperty(Constants.OLD_KEY_ALIAS, value);
+                    }
+                } else if (Constants.OLD_KEY.equals(propertyName)) {
+                    if (!StringUtils.isBlank(value)) {
+                        System.setProperty(Constants.OLD_KEY, value);
                     }
                 } else if ((Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY).equals(propertyName)) {
                     if (!StringUtils.isBlank(value)) {
@@ -184,7 +212,7 @@ public class CipherTool {
     private static void printHelp() {
 
         System.out.println("\n---------Cipher Tool Help---------\n");
-        System.out.println("By default, CipherTool can be used for creating encrypted value for given plain text using RSA algorithm\n");
+        System.out.println("By default, CipherTool can be used for creating encrypted value for given plain text\n");
         System.out.println("Options :\n");
 
         System.out.println("\t-Dconfigure\t\t This option would allow user to secure plain text passwords in carbon " +
@@ -196,10 +224,16 @@ public class CipherTool {
         System.out.println("\t-Dchange\t\t This option would allow user to change the specific password which has " +
                            "been secured\n");
         System.out.println("\t-Drotate\t\t This option is used to rotate the existing encrypted values to a new secret " +
-                "alias. Requires providing the old alias.\n");
+                "alias or encryption key. Requires providing the old alias (keystore mode) or the old encryption key " +
+                "(key-based mode).\n");
         System.out.println("\t-Dsymmetric\t\t This option allows the user to use symmetric encryption for creating " +
                 "encrypted values. It can be used with -Dconfigure, -Dchange, or -Drotate.\n");
+        System.out.println("\t-Dkey.based.encryption\t\t This option enables key-based symmetric encryption by allowing " +
+                "the user to provide a direct encryption key instead of a keystore. It must be used together with " +
+                "-Dsymmetric.\n");
         System.out.println("\t-Dold.alias=<Old secret alias>\t This specifies the old alias used in rotate mode.");
+        System.out.println("\t-Dold.key=<Old encryption key>\t This specifies the old encryption key used in rotate " +
+                "mode when key-based encryption is enabled.");
         System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
                            "command line argument. NOTE: Providing the password in command line arguments list is " +
                            "not recommended.\n");
