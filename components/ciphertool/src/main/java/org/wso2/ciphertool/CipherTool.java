@@ -113,7 +113,7 @@ public class CipherTool {
             String oldAlias = System.getProperty(Constants.OLD_KEY_ALIAS);
             String oldKey = null;
             if (isKeyBasedMode) {
-                oldKey = Utils.getValueFromConsole("Enter the old encryption key for rotation: ", true);
+                oldKey = Utils.getValueFromConsole(Constants.EncryptionKeyPrompts.OLD_KEY_PROMPT, true);
                 if (StringUtils.isBlank(oldKey)) {
                     throw new CipherToolException("Old encryption key is required for key-based rotation mode");
                 }
