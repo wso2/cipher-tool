@@ -117,10 +117,7 @@ public class CipherTool {
                 if (StringUtils.isBlank(oldKey)) {
                     throw new CipherToolException("Old encryption key is required for key-based rotation mode");
                 }
-                String newKey = Utils.getValueFromConsole("Enter the new encryption key for rotation: ", true);
-                if (StringUtils.isBlank(newKey)) {
-                    throw new CipherToolException("New encryption key is required for key-based rotation mode");
-                }
+                String newKey = Utils.getEncryptionKeyFromConsole(Constants.EncryptionKeyPrompts.ROTATION_NEW_KEY_PROMPT);
                 cipherMode = new SymmetricCipher(keyStore, newKey);
             }
             if (!isKeyBasedMode && StringUtils.isBlank(oldAlias)) {

@@ -199,7 +199,7 @@ public class SymmetricCipher implements CipherMode {
     private SecretKeySpec createSecretKeyFromInput(String encryptionKey) {
 
         if (StringUtils.isBlank(encryptionKey)) {
-            encryptionKey = Utils.getValueFromConsole("Please Enter Encryption Key: ", true);
+            encryptionKey = Utils.getEncryptionKeyFromConsole(Constants.EncryptionKeyPrompts.DEFAULT_PROMPT);
         }
         if (StringUtils.isBlank(encryptionKey)) {
             throw new CipherToolException("Encryption key cannot be null or empty");

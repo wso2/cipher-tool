@@ -677,4 +677,25 @@ public class Utils {
         });
         return documentBuilder;
     }
+
+    /**
+     * Obtain the encryption key from the console input.
+     *
+     * @param prompt The prompt message to be displayed in the console for the user input.
+     * @return The encryption key obtained from the console input.
+     */
+    public static String getEncryptionKeyFromConsole(String prompt) {
+
+        if (prompt == null || prompt.trim().isEmpty()) {
+            prompt = Constants.EncryptionKeyPrompts.DEFAULT_PROMPT;
+        }
+        String firstEncryptionKey = getValueFromConsole(prompt + Constants.EncryptionKeyPrompts.COLON, true);
+        String secondEncryptionKey = getValueFromConsole(prompt + Constants.EncryptionKeyPrompts.AGAIN, true);
+
+        if (!firstEncryptionKey.isEmpty() && firstEncryptionKey.equals(secondEncryptionKey)) {
+            return firstEncryptionKey;
+        } else {
+            throw new CipherToolException("Error : Encryption key does not match");
+        }
+    }
 }

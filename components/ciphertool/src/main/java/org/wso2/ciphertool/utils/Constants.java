@@ -149,4 +149,11 @@ public class Constants {
             return String.format(this.messageTemplate, args);
         }
     }
+
+    public static final class EncryptionKeyPrompts {
+        public static final String ROTATION_NEW_KEY_PROMPT = "Enter the new encryption key for rotation";
+        public static final String DEFAULT_PROMPT = "Please Enter Encryption Key";
+        public static final String COLON = " : ";
+        public static final String AGAIN = " Again : ";
+    }
 }
