@@ -52,6 +52,7 @@ public class SymmetricCipher implements CipherMode {
     private static final int GCM_IV_LENGTH = 128;
     private static final int GCM_TAG_LENGTH = 128;
     private static final int AES_256_KEY_SIZE = 32;
+    private static final int AES_256_HEX_KEY_LENGTH = 64;
     private final Key secretKey;
     private final Cipher cipher;
     private final String algorithm;
@@ -210,10 +211,7 @@ public class SymmetricCipher implements CipherMode {
                             + this.algorithm);
         }
         byte[] keyBytes;
-        if (encryptionKey.matches(Constants.HEX_PATTERN)) {
-            if (encryptionKey.length() % 2 != 0) {
-                throw new CipherToolException("Invalid hexadecimal key format.");
-            }
+        if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() == AES_256_HEX_KEY_LENGTH) {
             keyBytes = hexStringToByteArray(encryptionKey);
         } else {
             keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
