@@ -339,7 +339,7 @@ public class Utils {
                 String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
 
                 if (Constants.TRUE.equals((System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE)))) {
-                    System.out.println("\nSymmetric encryption using the encryption key.");
+                    System.out.println("\nSymmetric encryption using the encryption key.\n");
                 } else {
                     if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
                         System.out.println("\nSymmetric encryption using " + keyStoreName + " KeyStore.");
@@ -527,7 +527,7 @@ public class Utils {
         } catch (IllegalBlockSizeException e) {
             throw new CipherToolException("Error encrypting password ", e);
         }
-        System.out.println("\nEncryption is done Successfully\n");
+        System.out.println("\nEncryption is done successfully\n");
         return encodedValue;
     }
 
@@ -546,7 +546,7 @@ public class Utils {
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             throw new CipherToolException("Error decrypting password ", e);
         }
-        System.out.println("\nDecryption is done Successfully\n");
+        System.out.println("\nDecryption is done successfully\n");
         return encodedValue;
     }
 

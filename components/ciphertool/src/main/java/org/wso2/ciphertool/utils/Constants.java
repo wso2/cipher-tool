@@ -153,8 +153,8 @@ public class Constants {
     public static final class EncryptionKeyPrompts {
         public static final String OLD_KEY_PROMPT = "Enter the old encryption key for rotation";
         public static final String ROTATION_NEW_KEY_PROMPT = "Enter the new encryption key for rotation";
-        public static final String DEFAULT_PROMPT = "Please Enter Encryption Key";
+        public static final String DEFAULT_PROMPT = "Please enter the encryption key";
         public static final String COLON = " : ";
-        public static final String AGAIN = " Again : ";
+        public static final String AGAIN = " again : ";
     }
 }
