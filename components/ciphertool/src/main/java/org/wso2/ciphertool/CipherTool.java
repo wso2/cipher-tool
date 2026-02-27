@@ -113,12 +113,14 @@ public class CipherTool {
             String oldAlias = System.getProperty(Constants.OLD_KEY_ALIAS);
             String oldKey = null;
             if (isKeyBasedMode) {
-                oldKey = Utils.getValueFromConsole(
-                        Constants.EncryptionKeyPrompts.OLD_KEY_PROMPT + Constants.EncryptionKeyPrompts.COLON, true);
+                oldKey = Utils.getValueFromConsole(Constants.EncryptionKeyPrompts.OLD_KEY_PROMPT, true);
                 if (StringUtils.isBlank(oldKey)) {
-                    throw new CipherToolException("Old encryption key is required for key-based rotation mode");
+                    throw new CipherToolException(Constants.Error.OLD_ENCRYPTION_KEY_REQUIRED.getMessage());
                 }
-                String newKey = Utils.getEncryptionKeyFromConsole(Constants.EncryptionKeyPrompts.ROTATION_NEW_KEY_PROMPT);
+                String newKey = Utils.getValueFromConsole(Constants.EncryptionKeyPrompts.ROTATION_NEW_KEY_PROMPT, true);
+                if (StringUtils.isBlank(newKey)) {
+                    throw new CipherToolException(Constants.Error.NEW_ENCRYPTION_KEY_EMPTY.getMessage());
+                }
                 cipherMode = new SymmetricCipher(keyStore, newKey);
             }
             if (!isKeyBasedMode && StringUtils.isBlank(oldAlias)) {
@@ -189,9 +191,7 @@ public class CipherTool {
                     System.setProperty(property, Constants.TRUE);
                 } else if ((Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE).equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
-                    if (System.getProperty(Constants.SYMMETRIC) == null) {
-                        System.setProperty(Constants.SYMMETRIC, Constants.TRUE);
-                    }
+                    System.setProperty(Constants.SYMMETRIC, Constants.TRUE);
                 } else if (Constants.ROTATE.equals(propertyName)) {
                     System.setProperty(property, Constants.TRUE);
                 } else if (Constants.OLD_KEY_ALIAS.equals(propertyName)) {
@@ -221,34 +221,46 @@ public class CipherTool {
     private static void printHelp() {
 
         System.out.println("\n---------Cipher Tool Help---------\n");
-        System.out.println("By default, CipherTool can be used for creating encrypted value for given plain text\n");
+        System.out.println("By default, CipherTool can be used to create encrypted values for given plain text\n");
         System.out.println("Options :\n");
 
-        System.out.println("\t-Dconfigure\t\t This option would allow user to secure plain text passwords in carbon " +
-                           "configuration files. CipherTool will replace all the passwords listed in " +
-                           "cipher-text.properties file with encrypted values and modify related password elements " +
-                           "in the configuration files with secret alias names. Also secret-conf.properties file is " +
-                           "modified with the default configuration data");
+        System.out.println(
+                "\t-Dconfigure\t\t This option allows users to secure plain text passwords in carbon configuration " +
+                        "files. CipherTool will replace all passwords listed in the cipher-text.properties file " +
+                        "with encrypted values and modify related password elements in the configuration files with " +
+                        "secret alias names. The secret-conf.properties file is also modified with the default " +
+                        "configuration data.\n");
 
-        System.out.println("\t-Dchange\t\t This option would allow user to change the specific password which has " +
-                           "been secured\n");
-        System.out.println("\t-Drotate\t\t This option is used to rotate the existing encrypted values to a new secret " +
-                "alias or encryption key. Requires providing the old alias (keystore mode) via -Dold.alias parameter. " +
-                "In key-based mode, the old encryption key will be prompted securely at runtime.\n");
-        System.out.println("\t-Dsymmetric\t\t This option allows the user to use symmetric encryption for creating " +
-                "encrypted values. It can be used with -Dconfigure, -Dchange, or -Drotate.\n");
-        System.out.println("\t-Dkey.based.encryption\t\t This option enables key-based symmetric encryption by allowing " +
-                "the user to provide a direct encryption key instead of a keystore. It must be used together with " +
-                "-Dsymmetric.\n");
-        System.out.println("\t-Dold.alias=<Old secret alias>\t This specifies the old alias used in rotate mode " +
-                "(keystore-based encryption only).\n");
-        System.out.println("\t*** SECURITY NOTE ***: For key-based rotation mode, the old encryption key will be " +
-                "prompted securely via console input.\n");
-        System.out.println("\t-Dpassword=<password>\t This option would allow user to provide the password as a " +
-                           "command line argument. NOTE: Providing the password in command line arguments list is " +
-                           "not recommended.\n");
-        System.out.println("\t-Dorg.wso2.CipherTransformation=<Transformation algorithm>\t This option would allow user to encrypt plain text " +
-                "using the given transformation algorithm. Ex: -Dorg.wso2.CipherTransformation=RSA/ECB/OAEPwithSHA1andMGF1Padding\n");
+        System.out.println(
+                "\t-Dchange\t\t This option allows users to change specific passwords that have been secured.\n");
+
+        System.out.println(
+                "\t-Drotate\t\t This option rotates existing encrypted values with a new secret alias or encryption " +
+                        "key. In keystore mode, the old alias must be provided via the -Dold.alias parameter." +
+                        "In key-based mode, the old encryption key will be prompted securely at runtime.\n");
+
+        System.out.println(
+                "\t-Dsymmetric\t\t This option enables symmetric encryption for creating encrypted values. It can be " +
+                        "used with -Dconfigure, -Dchange, or -Drotate.\n");
+
+        System.out.println(
+                "\t-Dkey.based.encryption\t\t This option enables key-based symmetric encryption, allowing users to " +
+                        "provide a direct encryption key instead of using a keystore. It must be used together with " +
+                        "-Dsymmetric.\n");
+
+        System.out.println(
+                "\t-Dold.alias=<Old secret alias>\t This specifies the old alias to use in rotate mode " +
+                        "(keystore-based encryption only).\n");
+
+        System.out.println(
+                "\t-Dpassword=<password>\t\t This option allows users to provide the password as a command line " +
+                        "argument. NOTE: Providing passwords in command line arguments is not recommended for " +
+                        "security reasons.\n");
+
+        System.out.println(
+                "\t-Dorg.wso2.CipherTransformation=<Transformation algorithm>\t This option allows users to encrypt " +
+                        "plain text using the specified transformation algorithm. Example: " +
+                        "-Dorg.wso2.CipherTransformation=AES/GCM/NoPadding\n");
     }
 
     /**

@@ -137,7 +137,15 @@ public class Constants {
         JSON_VALUE_NOT_FOUND("Value \"%s\" not found in JSON"),
         TOML_NOT_FOUND("Deployment file %s not found"),
         PARAMETER_REQUIRED_FOR_ROTATE_MODE("%s parameter is required for key rotate mode mode."),
-        INVALID_JSON("Invalid encrypted text: JSON parsing failed.");
+        INVALID_JSON("Invalid encrypted text: JSON parsing failed."),
+        EMPTY_ENCRYPTION_KEY("Encryption key cannot be empty"),
+        UNSUPPORTED_TRANSFORMATION_FOR_KEY_BASED_ENCRYPTION("Key-based encryption is only supported " +
+                "for AES transformations. Configured transformation: %s"),
+        INVALID_AES_KEY_LENGTH("Invalid AES key length: %d bytes. AES-256 requires a 32-byte " +
+                "(256-bit) key."),
+        INVALID_HEX_CHARACTER("Invalid hexadecimal character found in encryption key at position %d"),
+        OLD_ENCRYPTION_KEY_REQUIRED("Old encryption key is required for key-based rotation mode"),
+        NEW_ENCRYPTION_KEY_EMPTY("New encryption key cannot be empty");
 
         private final String messageTemplate;
 
@@ -151,10 +159,8 @@ public class Constants {
     }
 
     public static final class EncryptionKeyPrompts {
-        public static final String OLD_KEY_PROMPT = "Enter the old encryption key for rotation";
-        public static final String ROTATION_NEW_KEY_PROMPT = "Enter the new encryption key for rotation";
-        public static final String DEFAULT_PROMPT = "Please enter the encryption key";
-        public static final String COLON = " : ";
-        public static final String AGAIN = " again : ";
+        public static final String OLD_KEY_PROMPT = "Please enter the old encryption key for rotation : ";
+        public static final String ROTATION_NEW_KEY_PROMPT = "Please enter the new encryption key for rotation : ";
+        public static final String DEFAULT_PROMPT = "Please enter the encryption key : ";
     }
 }

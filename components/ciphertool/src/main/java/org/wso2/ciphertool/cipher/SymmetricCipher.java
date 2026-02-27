@@ -200,15 +200,14 @@ public class SymmetricCipher implements CipherMode {
     private SecretKeySpec createSecretKeyFromInput(String encryptionKey) {
 
         if (StringUtils.isBlank(encryptionKey)) {
-            encryptionKey = Utils.getEncryptionKeyFromConsole(Constants.EncryptionKeyPrompts.DEFAULT_PROMPT);
+            encryptionKey = Utils.getValueFromConsole(Constants.EncryptionKeyPrompts.DEFAULT_PROMPT, true);
         }
         if (StringUtils.isBlank(encryptionKey)) {
-            throw new CipherToolException("Encryption key cannot be null or empty");
+            throw new CipherToolException(Constants.Error.EMPTY_ENCRYPTION_KEY.getMessage());
         }
         if (!this.algorithm.startsWith(Constants.AES)) {
             throw new CipherToolException(
-                    "Key-based encryption is only supported for AES transformations. Configured transformation: "
-                            + this.algorithm);
+                    Constants.Error.UNSUPPORTED_TRANSFORMATION_FOR_KEY_BASED_ENCRYPTION.getMessage(this.algorithm));
         }
         byte[] keyBytes;
         if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() == AES_256_HEX_KEY_LENGTH) {
@@ -218,7 +217,7 @@ public class SymmetricCipher implements CipherMode {
         }
         if (keyBytes.length != AES_256_KEY_SIZE) {
             throw new CipherToolException(
-                    "Invalid AES key length: " + keyBytes.length + " bytes. AES-256 requires a 32-byte (256-bit) key.");
+                    Constants.Error.INVALID_AES_KEY_LENGTH.getMessage(keyBytes.length));
         }
         return new SecretKeySpec(keyBytes, Constants.AES);
     }
@@ -238,7 +237,7 @@ public class SymmetricCipher implements CipherMode {
             int high = Character.digit(highChar, 16);
             int low = Character.digit(lowChar, 16);
             if (high == -1 || low == -1) {
-                throw new CipherToolException("Invalid hexadecimal character found in encryption key at position " + i);
+                throw new CipherToolException(Constants.Error.INVALID_HEX_CHARACTER.getMessage(i));
             }
             data[i / 2] = (byte) ((high << 4) + low);
         }
