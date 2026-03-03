@@ -527,7 +527,7 @@ public class Utils {
         } catch (IllegalBlockSizeException e) {
             throw new CipherToolException("Error encrypting password ", e);
         }
-        System.out.println("\nEncryption is done successfully\n");
+        System.out.println("\nEncryption is done Successfully\n");
         return encodedValue;
     }
 
@@ -546,7 +546,7 @@ public class Utils {
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             throw new CipherToolException("Error decrypting password ", e);
         }
-        System.out.println("\nDecryption is done successfully\n");
+        System.out.println("\nDecryption is done Successfully\n");
         return encodedValue;
     }
 
