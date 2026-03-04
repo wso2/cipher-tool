@@ -103,6 +103,8 @@ public class Constants {
                 "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler";
         public static final String CARBON_DEFAULT_SECRET_PROVIDER =
                 "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+        public static final String ENCRYPTION_SECRET_PROVIDER =
+                "org.wso2.carbon.securevault.EncryptionKeyCallbackHandler";
         public static final String ALIAS = "svns:secretAlias";
         public static final String PASSWORD = "password";
         public static final String SECRET_REPOSITORIES = "secretRepositories";

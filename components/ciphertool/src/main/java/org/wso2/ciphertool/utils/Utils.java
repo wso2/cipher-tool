@@ -250,7 +250,7 @@ public class Utils {
             properties.setProperty(Constants.SecureVault.SECRET_FILE_ENCRYPTION_MODE,
                     Constants.SecureVault.KEY_BASED_SYMMETRIC_ENCRYPTION);
             properties.setProperty(Constants.SecureVault.KEY_BASED_SECRET_PROVIDER,
-                    Constants.SecureVault.CARBON_DEFAULT_SECRET_PROVIDER);
+                    Constants.SecureVault.ENCRYPTION_SECRET_PROVIDER);
             properties.setProperty(Constants.SecureVault.KEY_BASED_PASSWORD,
                     Constants.SecureVault.ENCRYPTION_KEY_PASSWORD);
         }
