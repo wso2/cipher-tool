@@ -145,7 +145,7 @@ public class Constants {
                 "for AES transformations. Configured transformation: %s"),
         INVALID_AES_KEY_LENGTH("Invalid AES key length: %d bytes. AES-256 requires a 32-byte " +
                 "(256-bit) key."),
-        INVALID_HEX_CHARACTER("Invalid hexadecimal character found in encryption key at position %d"),
+        INVALID_HEX_CHARACTER("Invalid hexadecimal characters found in encryption key"),
         OLD_ENCRYPTION_KEY_REQUIRED("Old encryption key is required for key-based rotation mode"),
         NEW_ENCRYPTION_KEY_EMPTY("New encryption key cannot be empty");
 

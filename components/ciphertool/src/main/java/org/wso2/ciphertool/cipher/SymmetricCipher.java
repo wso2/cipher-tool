@@ -22,6 +22,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
@@ -211,7 +213,12 @@ public class SymmetricCipher implements CipherMode {
         }
         byte[] keyBytes;
         if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() == AES_256_HEX_KEY_LENGTH) {
-            keyBytes = hexStringToByteArray(encryptionKey);
+            try {
+                keyBytes = Hex.decodeHex(encryptionKey);
+            } catch (DecoderException e) {
+                throw new CipherToolException(
+                        Constants.Error.INVALID_HEX_CHARACTER.getMessage(), e);
+            }
         } else {
             keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
         }
@@ -220,28 +227,6 @@ public class SymmetricCipher implements CipherMode {
                     Constants.Error.INVALID_AES_KEY_LENGTH.getMessage(keyBytes.length));
         }
         return new SecretKeySpec(keyBytes, Constants.AES);
-    }
-
-    /**
-     * Converts a hexadecimal string to byte array.
-     *
-     * @param hexString The hexadecimal string to convert.
-     * @return The byte array representation of the hex string.
-     */
-    private byte[] hexStringToByteArray(String hexString) {
-        int len = hexString.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            char highChar = hexString.charAt(i);
-            char lowChar = hexString.charAt(i + 1);
-            int high = Character.digit(highChar, 16);
-            int low = Character.digit(lowChar, 16);
-            if (high == -1 || low == -1) {
-                throw new CipherToolException(Constants.Error.INVALID_HEX_CHARACTER.getMessage(i));
-            }
-            data[i / 2] = (byte) ((high << 4) + low);
-        }
-        return data;
     }
 
     /**
