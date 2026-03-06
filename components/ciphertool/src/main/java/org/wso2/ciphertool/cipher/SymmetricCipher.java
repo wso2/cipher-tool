@@ -22,6 +22,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.ciphertool.exception.CipherToolException;
 import org.wso2.ciphertool.utils.Constants;
@@ -42,6 +44,7 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Provides methods for encryption and decryption using symmetric key algorithms.
@@ -50,26 +53,34 @@ public class SymmetricCipher implements CipherMode {
 
     private static final int GCM_IV_LENGTH = 128;
     private static final int GCM_TAG_LENGTH = 128;
+    private static final int AES_256_KEY_SIZE = 32;
+    private static final int AES_256_HEX_KEY_LENGTH = 64;
     private final Key secretKey;
     private final Cipher cipher;
     private final String algorithm;
 
-    public SymmetricCipher(KeyStore keyStore, String keyAlias) {
+    public SymmetricCipher(KeyStore keyStore, String keyOrAlias) {
 
         String cipherTransformation = System.getProperty(Constants.CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
         this.algorithm = StringUtils.isNotBlank(cipherTransformation)
                 ? cipherTransformation : Constants.AES_GCM_NO_PADDING;
-        String password = KeyStoreUtil.getKeystorePassword();
-        try {
-            this.secretKey = keyStore.getKey(keyAlias, password.toCharArray());
-            if (this.secretKey == null) {
-                throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyAlias));
+        if (Constants.TRUE.equals(System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE))) {
+            this.secretKey = createSecretKeyFromInput(keyOrAlias);
+        } else {
+            String password = KeyStoreUtil.getKeystorePassword();
+            try {
+                this.secretKey = keyStore.getKey(keyOrAlias, password.toCharArray());
+                if (this.secretKey == null) {
+                    throw new KeyStoreException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyOrAlias));
+                }
+            } catch (KeyStoreException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
+                throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyOrAlias), e);
             }
+        }
+        try {
             this.cipher = Cipher.getInstance(this.algorithm);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new CipherToolException(Constants.Error.CIPHER_INIT_ERROR_MESSAGE.getMessage(), e);
-        } catch (KeyStoreException | UnrecoverableKeyException e) {
-            throw new CipherToolException(Constants.Error.GET_KEY_ERROR_MESSAGE.getMessage(keyAlias), e);
         }
     }
 
@@ -179,6 +190,44 @@ public class SymmetricCipher implements CipherMode {
         return iv;
     }
 
+    /**
+     * Creates a {@link SecretKeySpec} from the provided encryption key. If the key is null or blank, it prompts the
+     * user to enter a key via the console. The key can be provided in hexadecimal or plain text format and is validated
+     * for AES-256 key length requirements.
+     *
+     * @param encryptionKey the encryption key (plain text or hexadecimal)
+     * @return the generated secret key specification
+     * @throws CipherToolException if the key is null, empty, or invalid
+     */
+    private SecretKeySpec createSecretKeyFromInput(String encryptionKey) {
+
+        if (StringUtils.isBlank(encryptionKey)) {
+            encryptionKey = Utils.getValueFromConsole(Constants.EncryptionKeyPrompts.DEFAULT_PROMPT, true);
+        }
+        if (StringUtils.isBlank(encryptionKey)) {
+            throw new CipherToolException(Constants.Error.EMPTY_ENCRYPTION_KEY.getMessage());
+        }
+        if (!this.algorithm.startsWith(Constants.AES)) {
+            throw new CipherToolException(
+                    Constants.Error.UNSUPPORTED_TRANSFORMATION_FOR_KEY_BASED_ENCRYPTION.getMessage(this.algorithm));
+        }
+        byte[] keyBytes;
+        if (encryptionKey.matches(Constants.HEX_PATTERN) && encryptionKey.length() == AES_256_HEX_KEY_LENGTH) {
+            try {
+                keyBytes = Hex.decodeHex(encryptionKey);
+            } catch (DecoderException e) {
+                throw new CipherToolException(
+                        Constants.Error.INVALID_HEX_CHARACTER.getMessage(), e);
+            }
+        } else {
+            keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
+        }
+        if (keyBytes.length != AES_256_KEY_SIZE) {
+            throw new CipherToolException(
+                    Constants.Error.INVALID_AES_KEY_LENGTH.getMessage(keyBytes.length));
+        }
+        return new SecretKeySpec(keyBytes, Constants.AES);
+    }
 
     /**
      * Creates a self-contained ciphertext with GCM mode.

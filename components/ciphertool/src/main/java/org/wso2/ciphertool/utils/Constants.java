@@ -28,6 +28,7 @@ public class Constants {
     public static final String HOME_FOLDER = "home.folder";
     public static final String TRUE = "true";
     public static final String SYMMETRIC = "symmetric";
+    public static final String KEY_BASED_SYMMETRIC_ENCRYPTION_MODE = "key.based.encryption";
     public static final String OLD_KEY_ALIAS = "old.alias";
     public static final String REPOSITORY_DIR = "repository";
     public static final String CONF_DIR = "conf";
@@ -72,11 +73,14 @@ public class Constants {
     public static final String SECTION_SUFFIX = "]";
     public static final String KEY_VALUE_SEPERATOR = "=";
     public static final String AES_GCM_NO_PADDING = "AES/GCM/NoPadding";
+    public static final String AES = "AES";
     public static final String RSA = "RSA";
     public static final String CIPHERTEXT = "cipherText";
     public static final String IV = "iv";
     public static final String INTERNAL = "Internal";
     public static final String PRIMARY = "Primary";
+
+    public static final String HEX_PATTERN = "^[0-9a-fA-F]+$";
 
     public static final class PrimaryKeyStore {
         public static final String KEY_LOCATION_XPATH = "//Server/Security/KeyStore/Location";
@@ -99,6 +103,8 @@ public class Constants {
                 "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler";
         public static final String CARBON_DEFAULT_SECRET_PROVIDER =
                 "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+        public static final String ENCRYPTION_SECRET_PROVIDER =
+                "org.wso2.carbon.securevault.EncryptionKeyCallbackHandler";
         public static final String ALIAS = "svns:secretAlias";
         public static final String PASSWORD = "password";
         public static final String SECRET_REPOSITORIES = "secretRepositories";
@@ -119,6 +125,10 @@ public class Constants {
         public static final String KEYSTORE_KEY_PASSWORD = "keystore.identity.key.password";
         public static final String IDENTITY_KEY_PASSWORD = "identity.key.password";
         public static final String KEYSTORE_KEY_SECRET_PROVIDER = "keystore.identity.key.secretProvider";
+        public static final String KEY_BASED_SYMMETRIC_ENCRYPTION = "key.based.symmetric.encryption";
+        public static final String KEY_BASED_SECRET_PROVIDER = "key.based.secretProvider";
+        public static final String KEY_BASED_PASSWORD = "key.based.password";
+        public static final String ENCRYPTION_KEY_PASSWORD = "encryption.key.password";
     }
 
     public enum Error {
@@ -129,7 +139,15 @@ public class Constants {
         JSON_VALUE_NOT_FOUND("Value \"%s\" not found in JSON"),
         TOML_NOT_FOUND("Deployment file %s not found"),
         PARAMETER_REQUIRED_FOR_ROTATE_MODE("%s parameter is required for key rotate mode mode."),
-        INVALID_JSON("Invalid encrypted text: JSON parsing failed.");
+        INVALID_JSON("Invalid encrypted text: JSON parsing failed."),
+        EMPTY_ENCRYPTION_KEY("Encryption key cannot be empty"),
+        UNSUPPORTED_TRANSFORMATION_FOR_KEY_BASED_ENCRYPTION("Key-based encryption is only supported " +
+                "for AES transformations. Configured transformation: %s"),
+        INVALID_AES_KEY_LENGTH("Invalid AES key length: %d bytes. AES-256 requires a 32-byte " +
+                "(256-bit) key."),
+        INVALID_HEX_CHARACTER("Invalid hexadecimal characters found in encryption key"),
+        OLD_ENCRYPTION_KEY_REQUIRED("Old encryption key is required for key-based rotation mode"),
+        NEW_ENCRYPTION_KEY_EMPTY("New encryption key cannot be empty");
 
         private final String messageTemplate;
 
@@ -140,5 +158,11 @@ public class Constants {
         public String getMessage(Object... args) {
             return String.format(this.messageTemplate, args);
         }
+    }
+
+    public static final class EncryptionKeyPrompts {
+        public static final String OLD_KEY_PROMPT = "Please enter the old encryption key for rotation : ";
+        public static final String ROTATION_NEW_KEY_PROMPT = "Please enter the new encryption key for rotation : ";
+        public static final String DEFAULT_PROMPT = "Please enter the encryption key : ";
     }
 }

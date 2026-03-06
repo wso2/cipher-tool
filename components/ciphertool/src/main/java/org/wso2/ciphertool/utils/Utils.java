@@ -246,6 +246,14 @@ public class Utils {
         if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
             properties.setProperty(Constants.SecureVault.SECRET_FILE_ENCRYPTION_MODE, Constants.SYMMETRIC);
         }
+        if (Constants.TRUE.equals((System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE)))) {
+            properties.setProperty(Constants.SecureVault.SECRET_FILE_ENCRYPTION_MODE,
+                    Constants.SecureVault.KEY_BASED_SYMMETRIC_ENCRYPTION);
+            properties.setProperty(Constants.SecureVault.KEY_BASED_SECRET_PROVIDER,
+                    Constants.SecureVault.ENCRYPTION_SECRET_PROVIDER);
+            properties.setProperty(Constants.SecureVault.KEY_BASED_PASSWORD,
+                    Constants.SecureVault.ENCRYPTION_KEY_PASSWORD);
+        }
         properties.setProperty(Constants.SecureVault.SECRET_FILE_LOCATION, System.getProperty(
                 Constants.SecureVault.SECRET_FILE_LOCATION));
 
@@ -330,12 +338,16 @@ public class Utils {
                 System.setProperty(Constants.KEY_LOCATION_PROPERTY, keyStoreFile);
                 String keyStoreName = ((Utils.isPrimaryKeyStore()) ? Constants.PRIMARY : Constants.INTERNAL);
 
-                if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
-                    System.out.println("\nSymmetric encryption using " + keyStoreName + " KeyStore.");
+                if (Constants.TRUE.equals((System.getProperty(Constants.KEY_BASED_SYMMETRIC_ENCRYPTION_MODE)))) {
+                    System.out.println("\nSymmetric encryption using the encryption key.\n");
                 } else {
-                    System.out.println("\nAsymmetric encryption using " + keyStoreName + " KeyStore.");
+                    if (Constants.TRUE.equals((System.getProperty(Constants.SYMMETRIC)))) {
+                        System.out.println("\nSymmetric encryption using " + keyStoreName + " KeyStore.");
+                    } else {
+                        System.out.println("\nAsymmetric encryption using " + keyStoreName + " KeyStore.");
+                    }
+                    System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
                 }
-                System.out.println("{type: " + keyType + ", alias: " + keyAlias + ", path: " + keyStoreFile + "}\n");
 
                 if (hasConfigInRepository) {
 	                secretConfFile = Constants.REPOSITORY_DIR + File.separator + Constants.CONF_DIR + File.separator +
