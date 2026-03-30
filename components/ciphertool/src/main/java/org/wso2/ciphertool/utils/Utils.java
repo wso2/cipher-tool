@@ -666,7 +666,11 @@ public class Utils {
         documentBuilderFactory.setIgnoringComments(setIgnoreComments);
         documentBuilderFactory.setNamespaceAware(false);
         documentBuilderFactory.setExpandEntityReferences(false);
+        documentBuilderFactory.setXIncludeAware(false);
         documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         documentBuilderFactory.setXIncludeAware(false);
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         documentBuilder.setEntityResolver(new EntityResolver() {
